@@ -52,6 +52,14 @@ public class DataSeeder implements CommandLineRunner {
                 "direcao123",
                 TipoConta.DIRECAO
         );
+
+        criarUtilizadorSeNaoExistir(
+                "cliente@patudos.pt",
+                "Cliente Teste",
+                "950000000",
+                "cliente123",
+                TipoConta.PROPRIETARIO
+        );
     }
 
     private void criarUtilizadorSeNaoExistir(String email,

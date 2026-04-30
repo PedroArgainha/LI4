@@ -82,6 +82,15 @@ public class ServicoController {
         return ResponseEntity.noContent().build();
     }
 
+    @PatchMapping("/reserva/{reservaId}/{reservaServicoId}/realizado")
+    @PreAuthorize("hasAnyRole('FUNC_OPERACIONAL', 'ADMIN')")
+    public ResponseEntity<Void> marcarRealizado(
+            @PathVariable Long reservaId,
+            @PathVariable Long reservaServicoId) {
+        gestaoServicos.marcarComoRealizado(reservaId, reservaServicoId);
+        return ResponseEntity.noContent().build();
+    }
+
     // Mapa de serviços do dia para funcionário operacional
     @GetMapping("/dia")
     @PreAuthorize("hasAnyRole('FUNC_OPERACIONAL', 'FUNC_ADMINISTRATIVO', 'ADMIN')")

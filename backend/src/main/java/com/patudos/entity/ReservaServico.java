@@ -22,6 +22,9 @@ public class ReservaServico {
     @JoinColumn(name = "servico_id", nullable = false)
     private Servico servico;
 
+    @Column(nullable = false)
+    private boolean realizado = false;
+
     // Data em que o serviço deve ser executado (durante a estadia)
     private LocalDate dataExecucao;
 
@@ -45,4 +48,7 @@ public class ReservaServico {
 
     public LocalDate getDataExecucao() { return dataExecucao; }
     public void setDataExecucao(LocalDate dataExecucao) { this.dataExecucao = dataExecucao; }
+
+    public boolean isRealizado() { return realizado; }
+    public void setRealizado(boolean realizado) { this.realizado = realizado; }
 }

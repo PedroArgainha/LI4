@@ -23,6 +23,8 @@ public interface IGestaoServicos {
     void associarAReserva(Long reservaId, AssociarServicoRequest request);
     void removerDeReserva(Long reservaId, Long reservaServicoId);
 
+    void marcarComoRealizado(Long reservaId, Long reservaServicoId);
+
     // Serviços a executar num dia específico (para funcionário operacional)
     List<ServicoResponse> listarServicosDoDia(LocalDate data);
 }

@@ -163,6 +163,27 @@ public class GestaoServicosService implements IGestaoServicos {
                 .toList();
     }
 
+    @Override
+    @Transactional
+    public void marcarComoRealizado(Long reservaId, Long reservaServicoId) {
+        Reserva reserva = reservaRepository.findById(reservaId)
+                .orElseThrow(() -> new RecursoNaoEncontradoException(
+                        "Reserva não encontrada com id: " + reservaId));
+
+        ReservaServico rs = reserva.getServicos().stream()
+                .filter(s -> s.getId().equals(reservaServicoId))
+                .findFirst()
+                .orElseThrow(() -> new RecursoNaoEncontradoException(
+                        "Serviço associado não encontrado com id: " + reservaServicoId));
+
+        if (rs.isRealizado()) {
+            throw new RegraDeNegocioException("O serviço já foi marcado como realizado.");
+        }
+
+        rs.setRealizado(true);
+        reservaRepository.save(reserva);
+    }
+
     private Servico encontrarServico(Long id) {
         return servicoRepository.findById(id)
                 .orElseThrow(() -> new RecursoNaoEncontradoException(

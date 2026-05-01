@@ -63,8 +63,8 @@ Estados possíveis de uma reserva ao longo do seu ciclo de vida.
 
 | Valor | Descrição | Transições |
 |-------|-----------|-----------|
-| `PENDENTE` | Reserva criada, aguardando confirmação | → CONFIRMADA, CANCELADA |
-| `CONFIRMADA` | Confirmada e pagamento recebido | → EM_ESTADIA, CANCELADA |
+| `PENDENTE` | Reserva criada, aguardando confirmação | → CONFIRMADA, CANCELADA|
+| 
 | `EM_ESTADIA` | Animal está presente no estabelecimento | → CONCLUIDA, CANCELADA |
 | `CONCLUIDA` | Reserva finalizada, animal partiu | (terminal) |
 | `CANCELADA` | Reserva cancelada | (terminal) |
@@ -73,7 +73,7 @@ Estados possíveis de uma reserva ao longo do seu ciclo de vida.
 
 **Dados Armazenados:**
 ```
-PENDENTE        ---→ CONFIRMADA    ---→ EM_ESTADIA    ---→ CONCLUIDA
+PENDENTE        --→ EM_ESTADIA    ---→ CONCLUIDA
                           ↓               ↓                   ✓
            CANCELADA (em qualquer altura)
 ```
@@ -82,10 +82,6 @@ PENDENTE        ---→ CONFIRMADA    ---→ EM_ESTADIA    ---→ CONCLUIDA
 - `instanteCheckIn` (preenchido ao passar para EM_ESTADIA)
 - `instanteCheckOut` (preenchido ao passar para CONCLUIDA)
 - `espaco_id` (atribuído ao check-in)
-
-**⚠️ DISCREPÂNCIA ENCONTRADA:** 
-O backend tem 4 estados, mas o frontend espera 5 (incluindo `CONFIRMADA`). 
-**Ação Necessária:** Adicionar `CONFIRMADA` ao enum do backend ou revisar o workflow do frontend.
 
 ---
 

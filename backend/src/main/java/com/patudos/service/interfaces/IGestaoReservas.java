@@ -18,9 +18,6 @@ public interface IGestaoReservas {
     // Criar reserva (proprietário ou funcionário admin)
     ReservaResponse criarReserva(CriarReservaRequest request);
 
-    // Confirmar reserva após pagamento do sinal (funcionário admin)
-    ReservaResponse confirmarReserva(Long reservaId);
-
     // Check-in: atribui espaço e muda estado para EM_ESTADIA
     // Esta operação é @Transactional — atualiza reserva e espaço atomicamente
     ReservaResponse checkIn(Long reservaId, Long espacoId);

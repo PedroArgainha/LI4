@@ -91,23 +91,12 @@ public class GestaoReservasService implements IGestaoReservas {
 
     @Override
     @Transactional
-    public ReservaResponse confirmarReserva(Long reservaId) {
-        Reserva reserva = encontrarReserva(reservaId);
-        garantirEstado(reserva, EstadoReserva.PENDENTE,
-                "Só é possível confirmar reservas no estado PENDENTE.");
-
-        reserva.setEstado(EstadoReserva.CONFIRMADA);
-        return toResponse(reservaRepository.save(reserva));
-    }
-
-    @Override
-    @Transactional
     public ReservaResponse checkIn(Long reservaId, Long espacoId) {
         // @Transactional garante que a atualização da reserva e do espaço
         // acontece atomicamente — se qualquer passo falhar, tudo é revertido.
         Reserva reserva = encontrarReserva(reservaId);
-        garantirEstado(reserva, EstadoReserva.CONFIRMADA,
-                "Só é possível fazer check-in em reservas CONFIRMADAS.");
+        garantirEstado(reserva, EstadoReserva.PENDENTE,
+                "Só é possível fazer check-in em reservas PENDENTES.");
 
         EspacoAlojamento espaco = espacoRepository.findById(espacoId)
                 .orElseThrow(() -> new RecursoNaoEncontradoException(

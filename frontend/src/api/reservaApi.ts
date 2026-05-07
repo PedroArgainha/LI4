@@ -11,9 +11,6 @@ export const reservaApi = {
   criar: (data: ReservaRequest) =>
     http.post<Reserva>('/reservas', data).then((r) => r.data),
 
-  confirmar: (id: number) =>
-    http.patch<Reserva>(`/reservas/${id}/confirmar`).then((r) => r.data),
-
   checkin: (id: number, espacoId: number) =>
     http.patch<Reserva>(`/reservas/${id}/checkin`, null, { params: { espacoId } }).then((r) => r.data),
 

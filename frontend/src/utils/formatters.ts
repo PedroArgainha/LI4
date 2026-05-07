@@ -9,7 +9,6 @@ export const formatMoney = (value: number) =>
 
 export const ESTADO_RESERVA_BADGE: Record<string, { label: string; color: string }> = {
   PENDENTE:    { label: 'Pendente',    color: 'bg-yellow-100 text-yellow-800' },
-  CONFIRMADA:  { label: 'Confirmada', color: 'bg-blue-100 text-blue-800' },
   EM_ESTADIA:  { label: 'Em estadia', color: 'bg-green-100 text-green-800' },
   CONCLUIDA:   { label: 'Concluída',  color: 'bg-gray-100 text-gray-600' },
   CANCELADA:   { label: 'Cancelada',  color: 'bg-red-100 text-red-800' },

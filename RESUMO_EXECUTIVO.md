@@ -113,24 +113,21 @@ O sistema **Patudos Companhia** é uma plataforma de gestão de alojamento para 
    ├─ Pré-calcula preço_base (dias × tarifa)
    ├─ animal_id referenciado
    └─ espacio_id: NULL (atribuído no check-in)
-   
-3. Sistema confirma (muda para CONFIRMADA)
-   └─ Requer pagamento validado
-   
-4. Funcionário faz check-in (passa para EM_ESTADIA)
+
+3. Funcionário faz check-in (passa para EM_ESTADIA)
    ├─ Atualiza espacio_id
    ├─ Atualiza estado ESPACO para OCUPADO
    └─ Registra instante_checkin
    
-5. Podem ser adicionados serviços (RESERVAS_SERVICOS)
+4. Podem ser adicionados serviços (RESERVAS_SERVICOS)
    └─ Com datas de execução durante a estadia
    
-6. Funcionário faz check-out (passa para CONCLUIDA)
+5. Funcionário faz check-out (passa para CONCLUIDA)
    ├─ Registra instante_checkout
    ├─ Atualiza estado ESPACO para DISPONIVEL
    └─ Calcula total final (preco_base + servicos)
    
-7. Proprietário realiza pagamento (PAGAMENTO)
+6. Proprietário realiza pagamento (PAGAMENTO) (pode ser antes ou depois)
    └─ Metodo: MBWAY/CARTAO/TRANSFERENCIA/NUMERARIO
 ```
 
@@ -172,20 +169,15 @@ RESERVA : SERVICO = N:M (via tabela RESERVAS_SERVICOS)
 
 ```plaintext
 PENDENTE
-  ├─ Aguardando confirmação
-  ├─ Sem pagamento obrigatório ainda
-  └─ Pode: → CONFIRMADA (confirmar), → CANCELADA (cancelar)
-
-CONFIRMADA
-  ├─ Confirmada e com pagamento recebido
-  ├─ Espaço ainda não atribuído
+  ├─ Reserva criada, aguardando check-in
+  ├─ Animal ainda não se encontra no estabelecimento
   └─ Pode: → EM_ESTADIA (check-in), → CANCELADA (cancelar)
 
 EM_ESTADIA
   ├─ Animal presente no estabelecimento
   ├─ Espaço já está OCUPADO
   ├─ Podem ser acrescidos serviços
-  └─ Pode: → CONCLUIDA (check-out), → CANCELADA (cancelar com penalidade)
+  └─ Pode: → CONCLUIDA (check-out), → CANCELADA (cancelar)
 
 CONCLUIDA ✓
   ├─ Animal já partiu
@@ -193,7 +185,7 @@ CONCLUIDA ✓
   └─ Estado terminal (sem reversão)
 
 CANCELADA ✗
-  ├─ Cancelada a qualquer hora
+  ├─ Cancelada a qualquer hora (de PENDENTE ou EM_ESTADIA)
   ├─ Espaço libertado se estava OCUPADO
   └─ Estado terminal (sem reversão)
 ```
@@ -345,11 +337,11 @@ ORDER BY rs.data_execucao;
   - ✅ ReservaServico.java
 
 - [x] **Enums Definidos**
-  - ✅ Especie.java
-  - ✅ Porte.java
-  - ✅ TipoConta.java
-  - ✅ EstadoReserva.java (⚠️ Falta CONFIRMADA)
-  - ✅ EstadoEspaco.java
+   - ✅ Especie.java
+   - ✅ Porte.java
+   - ✅ TipoConta.java
+   - ✅ EstadoReserva.java (Fluxo: PENDENTE → EM_ESTADIA → CONCLUIDA + CANCELADA)
+   - ✅ EstadoEspaco.java
 
 - [ ] **Repositories (Spring Data JPA)**
   - [ ] UtilizadorRepository
@@ -380,10 +372,10 @@ ORDER BY rs.data_execucao;
 
 ## 🐛 Problemas Conhecidos
 
-### 1. ⚠️ EstadoReserva Incompleto
-- **Problema:** Backend tem 4 estados, frontend espera 5 (CONFIRMADA)
-- **Impacto:** Validação de estado falha
-- **Solução:** Adicionar `CONFIRMADA` ao enum
+### 1. ✅ EstadoReserva Alinhado (RESOLVIDO)
+- **Problema:** ~~Backend tinha 4 estados, frontend esperava 5~~
+- **Solução Aplicada:** Fluxo simplificado: PENDENTE → EM_ESTADIA → CONCLUIDA (+ CANCELADA de qualquer estado)
+- **Status:** ✅ Implementado conforme requisitos
 
 ### 2. ⚠️ MetodoPagamento não é Enum
 - **Problema:** Armazenado como String

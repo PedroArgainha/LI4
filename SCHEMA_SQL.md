@@ -152,7 +152,6 @@ CREATE TABLE reservas (
     data_fim DATE NOT NULL,
     estado VARCHAR(50) NOT NULL DEFAULT 'PENDENTE' CHECK (estado IN (
         'PENDENTE', 
-        'CONFIRMADA',
         'EM_ESTADIA', 
         'CONCLUIDA', 
         'CANCELADA'
@@ -176,7 +175,7 @@ CREATE INDEX idx_reservas_estado ON reservas(estado);
 
 -- Índice composto para queries de disponibilidade
 CREATE INDEX idx_reservas_periodo ON reservas(data_inicio, data_fim, estado) 
-WHERE estado IN ('CONFIRMADA', 'EM_ESTADIA');
+WHERE estado IN ('PENDENTE', 'EM_ESTADIA');
 ```
 
 ---

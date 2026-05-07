@@ -9,7 +9,10 @@ import com.patudos.repository.EspacoAlojamentoRepository;
 import com.patudos.repository.PagamentoRepository;
 import com.patudos.repository.ReservaRepository;
 import com.patudos.service.interfaces.IGestaoRelatorios;
+import com.patudos.util.PDFGenerator;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
+
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -21,16 +24,20 @@ import java.util.stream.Collectors;
 @Service
 public class GestaoRelatoriosService implements IGestaoRelatorios {
 
+    private final PDFGenerator pdfGenerator;
     private final ReservaRepository reservaRepository;
     private final PagamentoRepository pagamentoRepository;
     private final EspacoAlojamentoRepository espacoRepository;
 
+
     public GestaoRelatoriosService(ReservaRepository reservaRepository,
                                    PagamentoRepository pagamentoRepository,
-                                   EspacoAlojamentoRepository espacoRepository) {
+                                   EspacoAlojamentoRepository espacoRepository,
+                                   PDFGenerator pdfGenerator) {
         this.reservaRepository = reservaRepository;
         this.pagamentoRepository = pagamentoRepository;
         this.espacoRepository = espacoRepository;
+        this.pdfGenerator = pdfGenerator;
     }
 
     @Override
@@ -99,14 +106,9 @@ public class GestaoRelatoriosService implements IGestaoRelatorios {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public byte[] exportarRelatorioOcupacaoPDF(LocalDate inicio, LocalDate fim) {
-        // Placeholder — em produção usaria iText ou JasperReports
-        RelatorioOcupacaoResponse r = taxaOcupacao(inicio, fim);
-        String conteudo = String.format(
-                "RELATÓRIO DE OCUPAÇÃO\nPeríodo: %s a %s\nTotal espaços: %d\nTaxa média: %.1f%%",
-                r.inicio(), r.fim(), r.totalEspacos(), r.taxaMediaOcupacao()
-        );
-        return conteudo.getBytes();
+        return pdfGenerator.gerarRelatorioOcupacao(taxaOcupacao(inicio, fim));
     }
 
     @Override

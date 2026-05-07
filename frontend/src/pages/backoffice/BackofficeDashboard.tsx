@@ -28,7 +28,7 @@ export default function BackofficeDashboard() {
   });
 
   const pendentes = todas.filter((r) => r.estado === 'PENDENTE');
-  const checkins = todas.filter((r) => r.dataInicio === today && r.estado === 'CONFIRMADA');
+  const checkins = todas.filter((r) => r.dataInicio === today && r.estado === 'PENDENTE');
   const receita = pagamentos.reduce((acc, p) => acc + p.valor, 0);
 
   return (

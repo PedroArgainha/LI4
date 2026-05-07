@@ -14,7 +14,7 @@ export default function ClientLayout() {
   };
 
   const navLinks = [
-    { to: '/portal', label: 'Dashboard', icon: Home, end: true },
+    { to: '/portal', label: 'Início', icon: Home, end: true },
     { to: '/portal/animais', label: 'Os Meus Animais', icon: Dog },
     { to: '/portal/reservas', label: 'Reservas', icon: Calendar },
   ];

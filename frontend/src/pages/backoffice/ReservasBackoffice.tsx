@@ -10,7 +10,7 @@ import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
 import { formatDate, formatMoney } from '../../utils/formatters';
 import type { Reserva } from '../../types/reserva';
 import type { MetodoPagamento } from '../../types/pagamento';
-import { Loader2, Eye, CheckCircle, LogIn, LogOut, Ban, CreditCard } from 'lucide-react';
+import { Loader2, Eye, LogIn, LogOut, Ban, CreditCard } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function ReservasBackoffice() {
@@ -33,7 +33,6 @@ export default function ReservasBackoffice() {
     enabled: !!detailReserva && pagamentoModal,
   });
 
-  const confirmarM = useMutation({ mutationFn: reservaApi.confirmar, onSuccess: () => { toast.success('Reserva confirmada!'); invalidate(); } });
   const checkinM   = useMutation({ mutationFn: ({ id, eId }: { id: number; eId: number }) => reservaApi.checkin(id, eId), onSuccess: () => { toast.success('Check-in realizado!'); invalidate(); setCheckinModal(null); } });
   const checkoutM  = useMutation({ mutationFn: reservaApi.checkout, onSuccess: () => { toast.success('Check-out realizado!'); invalidate(); } });
   const cancelarM  = useMutation({ mutationFn: reservaApi.cancelar, onSuccess: () => { toast.success('Reserva cancelada.'); invalidate(); } });
@@ -45,7 +44,7 @@ export default function ReservasBackoffice() {
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ['reservas'] });
 
-  const ativas    = reservas.filter((r) => ['PENDENTE', 'CONFIRMADA', 'EM_ESTADIA'].includes(r.estado));
+  const ativas    = reservas.filter((r) => ['PENDENTE', 'EM_ESTADIA'].includes(r.estado));
   const historico = reservas.filter((r) => ['CONCLUIDA', 'CANCELADA'].includes(r.estado));
   const shown     = tab === 'ativas' ? ativas : tab === 'historico' ? historico : reservas;
 
@@ -62,11 +61,10 @@ export default function ReservasBackoffice() {
       render: (r: Reserva) => (
         <div className="flex items-center gap-1">
           <ActionBtn icon={<Eye size={13} />} title="Ver" onClick={() => setDetailReserva(r)} />
-          {r.estado === 'PENDENTE'   && <ActionBtn icon={<CheckCircle size={13} />} title="Confirmar" color="text-blue-600" onClick={() => confirmarM.mutate(r.id)} />}
-          {r.estado === 'CONFIRMADA' && <ActionBtn icon={<LogIn size={13} />} title="Check-in" color="text-green-600" onClick={() => setCheckinModal(r)} />}
+          {r.estado === 'PENDENTE'   && <ActionBtn icon={<LogIn size={13} />} title="Check-in" color="text-green-600" onClick={() => setCheckinModal(r)} />}
           {r.estado === 'EM_ESTADIA' && <ActionBtn icon={<LogOut size={13} />} title="Check-out" color="text-purple-600" onClick={() => { if (confirm('Registar check-out?')) checkoutM.mutate(r.id); }} />}
           {r.estado === 'EM_ESTADIA' && <ActionBtn icon={<CreditCard size={13} />} title="Pagamento" color="text-amber-700" onClick={() => { setDetailReserva(r); setPagamentoModal(true); setPagForm({ valor: String(r.precoBase), metodo: 'MBWAY' }); }} />}
-          {(r.estado === 'PENDENTE' || r.estado === 'CONFIRMADA') && <ActionBtn icon={<Ban size={13} />} title="Cancelar" color="text-red-600" onClick={() => { if (confirm('Cancelar reserva?')) cancelarM.mutate(r.id); }} />}
+          {r.estado === 'PENDENTE' && <ActionBtn icon={<Ban size={13} />} title="Cancelar" color="text-red-600" onClick={() => { if (confirm('Cancelar reserva?')) cancelarM.mutate(r.id); }} />}
         </div>
       ),
     },

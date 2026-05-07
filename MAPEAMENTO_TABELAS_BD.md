@@ -133,7 +133,7 @@
 | `espaco_id` | BIGINT | FK | Espaço atribuído (NULL até check-in) |
 | `data_inicio` | DATE | NOT NULL | Data de check-in prevista |
 | `data_fim` | DATE | NOT NULL | Data de check-out prevista |
-| `estado` | ENUM | NOT NULL | PENDENTE, CONFIRMADA, EM_ESTADIA, CONCLUIDA, CANCELADA |
+| `estado` | ENUM | NOT NULL | PENDENTE, EM_ESTADIA, CONCLUIDA, CANCELADA |
 | `instante_checkin` | TIMESTAMP | | Quando o animal chegou (atualizado no check-in) |
 | `instante_checkout` | TIMESTAMP | | Quando o animal saiu (atualizado no check-out) |
 | `preco_base` | DECIMAL(10,2) | NOT NULL | Tarifa calculada (dias × valor diário) |

@@ -64,7 +64,7 @@ export default function ReservasPage() {
 
   const resetModal = () => { setStep(1); setForm({ animalId: 0, dataInicio: '', dataFim: '' }); setSelectedServicos([]); };
 
-  const ativas = reservas.filter((r) => ['PENDENTE', 'CONFIRMADA', 'EM_ESTADIA'].includes(r.estado));
+  const ativas = reservas.filter((r) => ['PENDENTE', 'EM_ESTADIA'].includes(r.estado));
   const historico = reservas.filter((r) => ['CONCLUIDA', 'CANCELADA'].includes(r.estado));
   const shown = tab === 'ativas' ? ativas : historico;
 
@@ -126,7 +126,7 @@ export default function ReservasPage() {
                 )}
                 <p className="font-bold text-[#041525]">{formatMoney(r.precoBase)}</p>
                 <EstadoBadge estado={r.estado} />
-                {(r.estado === 'PENDENTE' || r.estado === 'CONFIRMADA') && (
+                {r.estado === 'PENDENTE' && (
                   <button
                     onClick={() => { if (confirm('Cancelar esta reserva?')) cancelarMutation.mutate(r.id); }}
                     className="text-xs text-red-600 hover:text-red-800 font-medium transition-colors flex items-center gap-1"

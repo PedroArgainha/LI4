@@ -29,7 +29,7 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
         """)
     List<Reserva> findEstadiasAtivas(@Param("hoje") LocalDate hoje);
 
-    // Verificar se um espaço já tem reserva no período (usado para garantir consistência)
+    // Verificar se um espaço já tem reserva ativa no período (PENDENTE ou EM_ESTADIA)
     boolean existsByEspacoIdAndEstadoInAndDataInicioLessThanAndDataFimGreaterThan(
             Long espacoId,
             List<EstadoReserva> estados,

@@ -1,0 +1,2453 @@
+openapi: 3.0.3
+info:
+  title: Patudos & Companhia API
+  version: 1.0.0
+  description: Documentação OpenAPI da API REST do backend do sistema Patudos & Companhia, preparada para visualização no
+    Scalar. A API suporta autenticação JWT, gestão de utilizadores, animais, reservas, serviços, pagamentos e relatórios operacionais.
+  contact:
+    name: Equipa LI4 - Patudos & Companhia
+servers:
+- url: http://localhost:8080
+  description: Servidor local Spring Boot
+tags:
+- name: Autenticação
+  description: Registo e início de sessão.
+- name: Utilizadores
+  description: Gestão de perfis e contas de utilizador.
+- name: Animais
+  description: Gestão das fichas dos animais.
+- name: Reservas
+  description: Criação, consulta e alteração do estado das reservas.
+- name: Serviços
+  description: Catálogo de serviços e associação de serviços às reservas.
+- name: Pagamentos
+  description: Registo, consulta e faturação simulada de pagamentos.
+- name: Relatórios
+  description: Relatórios operacionais e financeiros.
+x-tagGroups:
+- name: Área pública
+  tags:
+  - Autenticação
+- name: Gestão operacional
+  tags:
+  - Utilizadores
+  - Animais
+  - Reservas
+  - Serviços
+  - Pagamentos
+- name: Direção
+  tags:
+  - Relatórios
+security:
+- bearerAuth: []
+paths:
+  /api/auth/registar:
+    post:
+      tags:
+      - Autenticação
+      summary: Registar conta de proprietário
+      operationId: registarProprietario
+      description: Cria uma nova conta de proprietário e devolve os dados públicos do utilizador criado.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegistarUtilizadorRequest'
+      responses:
+        '201':
+          description: Conta criada com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UtilizadorResponse'
+        '400':
+          description: Pedido inválido ou regra de negócio violada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '500':
+          description: Erro interno inesperado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+  /api/auth/login:
+    post:
+      tags:
+      - Autenticação
+      summary: Autenticar utilizador
+      operationId: login
+      description: Valida as credenciais e devolve um JWT para utilização nos endpoints protegidos.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Autenticação realizada com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          description: Pedido inválido ou regra de negócio violada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '500':
+          description: Erro interno inesperado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+  /api/utilizadores/funcionario:
+    post:
+      tags:
+      - Utilizadores
+      summary: Criar conta de funcionário
+      operationId: criarFuncionario
+      description: Cria uma conta interna. Apenas ADMIN. O parâmetro tipo não pode ser PROPRIETARIO.
+      parameters:
+      - name: tipo
+        in: query
+        required: true
+        schema:
+          $ref: '#/components/schemas/TipoContaFuncionario'
+        description: Tipo de conta interna a criar.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegistarUtilizadorRequest'
+      responses:
+        '201':
+          description: Funcionário criado com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UtilizadorResponse'
+        '400':
+          description: Pedido inválido ou regra de negócio violada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '401':
+          description: Não autenticado. Token JWT ausente, inválido ou expirado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '403':
+          description: Acesso recusado. O utilizador autenticado não tem permissões suficientes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '500':
+          description: Erro interno inesperado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+  /api/utilizadores:
+    get:
+      tags:
+      - Utilizadores
+      summary: Listar utilizadores
+      operationId: listarUtilizadores
+      description: Lista todos os utilizadores. Apenas ADMIN.
+      responses:
+        '200':
+          description: Lista de utilizadores.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UtilizadorResponse'
+        '401':
+          description: Não autenticado. Token JWT ausente, inválido ou expirado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '403':
+          description: Acesso recusado. O utilizador autenticado não tem permissões suficientes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '500':
+          description: Erro interno inesperado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+  /api/utilizadores/{id}:
+    get:
+      tags:
+      - Utilizadores
+      summary: Obter utilizador por ID
+      operationId: obterUtilizador
+      description: Consulta os dados públicos de um utilizador autenticado.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+        description: Identificador numérico do recurso.
+      responses:
+        '200':
+          description: Utilizador encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UtilizadorResponse'
+        '401':
+          description: Não autenticado. Token JWT ausente, inválido ou expirado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '404':
+          description: Recurso não encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '500':
+          description: Erro interno inesperado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+    put:
+      tags:
+      - Utilizadores
+      summary: Editar perfil de utilizador
+      operationId: editarPerfil
+      description: Atualiza nome e telefone de um utilizador autenticado.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+        description: Identificador numérico do recurso.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EditarPerfilRequest'
+      responses:
+        '200':
+          description: Perfil atualizado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UtilizadorResponse'
+        '400':
+          description: Pedido inválido ou regra de negócio violada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '401':
+          description: Não autenticado. Token JWT ausente, inválido ou expirado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '404':
+          description: Recurso não encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '500':
+          description: Erro interno inesperado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+    delete:
+      tags:
+      - Utilizadores
+      summary: Desativar conta de utilizador
+      operationId: desativarConta
+      description: Desativa uma conta por soft delete. Apenas ADMIN.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+        description: Identificador numérico do recurso.
+      responses:
+        '204':
+          description: Conta desativada com sucesso.
+        '401':
+          description: Não autenticado. Token JWT ausente, inválido ou expirado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '403':
+          description: Acesso recusado. O utilizador autenticado não tem permissões suficientes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '404':
+          description: Recurso não encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '500':
+          description: Erro interno inesperado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+  /api/animais/proprietario/{proprietarioId}:
+    post:
+      tags:
+      - Animais
+      summary: Criar ficha de animal
+      operationId: criarAnimal
+      description: Cria uma ficha de animal associada a um proprietário.
+      parameters:
+      - name: proprietarioId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+        description: Identificador do proprietário.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnimalRequest'
+      responses:
+        '201':
+          description: Animal criado com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnimalResponse'
+        '400':
+          description: Pedido inválido ou regra de negócio violada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '401':
+          description: Não autenticado. Token JWT ausente, inválido ou expirado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '403':
+          description: Acesso recusado. O utilizador autenticado não tem permissões suficientes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '404':
+          description: Recurso não encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '500':
+          description: Erro interno inesperado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+    get:
+      tags:
+      - Animais
+      summary: Listar animais por proprietário
+      operationId: listarAnimaisPorProprietario
+      description: Lista os animais associados a um proprietário.
+      parameters:
+      - name: proprietarioId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+        description: Identificador do proprietário.
+      responses:
+        '200':
+          description: Lista de animais do proprietário.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AnimalResponse'
+        '401':
+          description: Não autenticado. Token JWT ausente, inválido ou expirado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '404':
+          description: Recurso não encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '500':
+          description: Erro interno inesperado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+  /api/animais/{id}:
+    get:
+      tags:
+      - Animais
+      summary: Obter animal por ID
+      operationId: obterAnimal
+      description: Consulta a ficha de um animal.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+        description: Identificador numérico do recurso.
+      responses:
+        '200':
+          description: Animal encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnimalResponse'
+        '401':
+          description: Não autenticado. Token JWT ausente, inválido ou expirado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '404':
+          description: Recurso não encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '500':
+          description: Erro interno inesperado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+    put:
+      tags:
+      - Animais
+      summary: Editar ficha de animal
+      operationId: editarAnimal
+      description: Atualiza a ficha de um animal.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+        description: Identificador numérico do recurso.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnimalRequest'
+      responses:
+        '200':
+          description: Animal atualizado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnimalResponse'
+        '400':
+          description: Pedido inválido ou regra de negócio violada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '401':
+          description: Não autenticado. Token JWT ausente, inválido ou expirado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '403':
+          description: Acesso recusado. O utilizador autenticado não tem permissões suficientes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '404':
+          description: Recurso não encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '500':
+          description: Erro interno inesperado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+    delete:
+      tags:
+      - Animais
+      summary: Eliminar animal
+      operationId: eliminarAnimal
+      description: Remove a ficha de um animal. Apenas FUNC_ADMINISTRATIVO ou ADMIN.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+        description: Identificador numérico do recurso.
+      responses:
+        '204':
+          description: Animal eliminado com sucesso.
+        '401':
+          description: Não autenticado. Token JWT ausente, inválido ou expirado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '403':
+          description: Acesso recusado. O utilizador autenticado não tem permissões suficientes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '404':
+          description: Recurso não encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '500':
+          description: Erro interno inesperado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+  /api/animais:
+    get:
+      tags:
+      - Animais
+      summary: Listar todos os animais
+      operationId: listarAnimais
+      description: Lista todos os animais para perfis internos autorizados.
+      responses:
+        '200':
+          description: Lista de animais.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AnimalResponse'
+        '401':
+          description: Não autenticado. Token JWT ausente, inválido ou expirado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '403':
+          description: Acesso recusado. O utilizador autenticado não tem permissões suficientes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '500':
+          description: Erro interno inesperado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+  /api/reservas/disponibilidade:
+    get:
+      tags:
+      - Reservas
+      summary: Verificar disponibilidade
+      operationId: verificarDisponibilidade
+      description: Consulta disponibilidade de espaços para uma espécie, porte e intervalo de datas. Público.
+      security: []
+      parameters:
+      - name: especie
+        in: query
+        required: true
+        schema:
+          $ref: '#/components/schemas/Especie'
+        description: Espécie do animal.
+      - name: porte
+        in: query
+        required: true
+        schema:
+          $ref: '#/components/schemas/Porte'
+        description: Porte do animal.
+      - name: dataInicio
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+        description: Data de entrada.
+      - name: dataFim
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+        description: Data de saída.
+      responses:
+        '200':
+          description: Disponibilidade calculada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DisponibilidadeResponse'
+        '400':
+          description: Pedido inválido ou regra de negócio violada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '500':
+          description: Erro interno inesperado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+  /api/reservas:
+    post:
+      tags:
+      - Reservas
+      summary: Criar reserva
+      operationId: criarReserva
+      description: Cria uma reserva para um animal.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CriarReservaRequest'
+      responses:
+        '201':
+          description: Reserva criada com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservaResponse'
+        '400':
+          description: Pedido inválido ou regra de negócio violada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '401':
+          description: Não autenticado. Token JWT ausente, inválido ou expirado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '403':
+          description: Acesso recusado. O utilizador autenticado não tem permissões suficientes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '404':
+          description: Recurso não encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '500':
+          description: Erro interno inesperado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+    get:
+      tags:
+      - Reservas
+      summary: Listar todas as reservas
+      operationId: listarReservas
+      description: Lista todas as reservas para perfis internos autorizados.
+      responses:
+        '200':
+          description: Lista de reservas.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReservaResponse'
+        '401':
+          description: Não autenticado. Token JWT ausente, inválido ou expirado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '403':
+          description: Acesso recusado. O utilizador autenticado não tem permissões suficientes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '500':
+          description: Erro interno inesperado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+  /api/reservas/{id}:
+    get:
+      tags:
+      - Reservas
+      summary: Obter reserva por ID
+      operationId: obterReserva
+      description: Consulta os detalhes de uma reserva.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+        description: Identificador numérico do recurso.
+      responses:
+        '200':
+          description: Reserva encontrada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservaResponse'
+        '401':
+          description: Não autenticado. Token JWT ausente, inválido ou expirado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '404':
+          description: Recurso não encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '500':
+          description: Erro interno inesperado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+  /api/reservas/proprietario/{proprietarioId}:
+    get:
+      tags:
+      - Reservas
+      summary: Listar reservas por proprietário
+      operationId: listarReservasPorProprietario
+      description: Lista reservas associadas a um proprietário.
+      parameters:
+      - name: proprietarioId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+        description: Identificador do proprietário.
+      responses:
+        '200':
+          description: Lista de reservas do proprietário.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReservaResponse'
+        '401':
+          description: Não autenticado. Token JWT ausente, inválido ou expirado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '404':
+          description: Recurso não encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '500':
+          description: Erro interno inesperado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+  /api/reservas/ativas:
+    get:
+      tags:
+      - Reservas
+      summary: Listar estadias ativas
+      operationId: listarEstadiasAtivas
+      description: Lista as estadias ativas numa data. Se a data for omitida, usa a data atual do servidor.
+      parameters:
+      - name: data
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date
+        description: Data de referência.
+      responses:
+        '200':
+          description: Lista de estadias ativas.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReservaResponse'
+        '401':
+          description: Não autenticado. Token JWT ausente, inválido ou expirado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '403':
+          description: Acesso recusado. O utilizador autenticado não tem permissões suficientes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '500':
+          description: Erro interno inesperado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+  /api/reservas/{id}/confirmar:
+    patch:
+      tags:
+      - Reservas
+      summary: Confirmar reserva
+      operationId: confirmarReserva
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+        description: Identificador da reserva.
+      responses:
+        '200':
+          description: Reserva atualizada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservaResponse'
+        '400':
+          description: Pedido inválido ou regra de negócio violada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '401':
+          description: Não autenticado. Token JWT ausente, inválido ou expirado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '403':
+          description: Acesso recusado. O utilizador autenticado não tem permissões suficientes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '404':
+          description: Recurso não encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '500':
+          description: Erro interno inesperado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+  /api/reservas/{id}/checkin:
+    patch:
+      tags:
+      - Reservas
+      summary: Registar check-in
+      operationId: registarCheckIn
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+        description: Identificador da reserva.
+      - name: espacoId
+        in: query
+        required: true
+        schema:
+          type: integer
+          format: int64
+        description: Espaço concreto atribuído no check-in.
+      responses:
+        '200':
+          description: Reserva atualizada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservaResponse'
+        '400':
+          description: Pedido inválido ou regra de negócio violada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '401':
+          description: Não autenticado. Token JWT ausente, inválido ou expirado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '403':
+          description: Acesso recusado. O utilizador autenticado não tem permissões suficientes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '404':
+          description: Recurso não encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '500':
+          description: Erro interno inesperado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+  /api/reservas/{id}/checkout:
+    patch:
+      tags:
+      - Reservas
+      summary: Registar check-out
+      operationId: registarCheckOut
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+        description: Identificador da reserva.
+      responses:
+        '200':
+          description: Reserva atualizada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservaResponse'
+        '400':
+          description: Pedido inválido ou regra de negócio violada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '401':
+          description: Não autenticado. Token JWT ausente, inválido ou expirado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '403':
+          description: Acesso recusado. O utilizador autenticado não tem permissões suficientes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '404':
+          description: Recurso não encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '500':
+          description: Erro interno inesperado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+  /api/reservas/{id}/cancelar:
+    patch:
+      tags:
+      - Reservas
+      summary: Cancelar reserva
+      operationId: cancelarReserva
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+        description: Identificador da reserva.
+      responses:
+        '200':
+          description: Reserva atualizada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservaResponse'
+        '400':
+          description: Pedido inválido ou regra de negócio violada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '401':
+          description: Não autenticado. Token JWT ausente, inválido ou expirado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '403':
+          description: Acesso recusado. O utilizador autenticado não tem permissões suficientes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '404':
+          description: Recurso não encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '500':
+          description: Erro interno inesperado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+  /api/servicos/disponiveis:
+    get:
+      tags:
+      - Serviços
+      summary: Listar serviços disponíveis
+      operationId: listarServicosDisponiveis
+      description: Lista o catálogo público de serviços disponíveis.
+      security: []
+      responses:
+        '200':
+          description: Lista de serviços disponíveis.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ServicoResponse'
+        '500':
+          description: Erro interno inesperado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+  /api/servicos:
+    get:
+      tags:
+      - Serviços
+      summary: Listar todos os serviços
+      operationId: listarServicos
+      description: Lista todo o catálogo de serviços.
+      responses:
+        '200':
+          description: Lista de serviços.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ServicoResponse'
+        '401':
+          description: Não autenticado. Token JWT ausente, inválido ou expirado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '500':
+          description: Erro interno inesperado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+    post:
+      tags:
+      - Serviços
+      summary: Criar serviço
+      operationId: criarServico
+      description: Cria um serviço no catálogo. Apenas DIRECAO ou ADMIN.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServicoRequest'
+      responses:
+        '201':
+          description: Serviço criado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServicoResponse'
+        '400':
+          description: Pedido inválido ou regra de negócio violada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '401':
+          description: Não autenticado. Token JWT ausente, inválido ou expirado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '403':
+          description: Acesso recusado. O utilizador autenticado não tem permissões suficientes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '500':
+          description: Erro interno inesperado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+  /api/servicos/{id}:
+    get:
+      tags:
+      - Serviços
+      summary: Obter serviço por ID
+      operationId: obterServico
+      description: Consulta um serviço do catálogo.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+        description: Identificador numérico do recurso.
+      responses:
+        '200':
+          description: Serviço encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServicoResponse'
+        '401':
+          description: Não autenticado. Token JWT ausente, inválido ou expirado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '404':
+          description: Recurso não encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '500':
+          description: Erro interno inesperado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+    put:
+      tags:
+      - Serviços
+      summary: Editar serviço
+      operationId: editarServico
+      description: Atualiza um serviço do catálogo. Apenas DIRECAO ou ADMIN.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+        description: Identificador numérico do recurso.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServicoRequest'
+      responses:
+        '200':
+          description: Serviço atualizado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServicoResponse'
+        '400':
+          description: Pedido inválido ou regra de negócio violada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '401':
+          description: Não autenticado. Token JWT ausente, inválido ou expirado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '403':
+          description: Acesso recusado. O utilizador autenticado não tem permissões suficientes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '404':
+          description: Recurso não encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '500':
+          description: Erro interno inesperado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+  /api/servicos/{id}/toggle:
+    patch:
+      tags:
+      - Serviços
+      summary: Alternar disponibilidade do serviço
+      operationId: toggleDisponibilidadeServico
+      description: Ativa ou desativa um serviço do catálogo. Apenas DIRECAO ou ADMIN.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+        description: Identificador numérico do recurso.
+      responses:
+        '204':
+          description: Disponibilidade alterada.
+        '401':
+          description: Não autenticado. Token JWT ausente, inválido ou expirado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '403':
+          description: Acesso recusado. O utilizador autenticado não tem permissões suficientes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '404':
+          description: Recurso não encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '500':
+          description: Erro interno inesperado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+  /api/servicos/reserva/{reservaId}:
+    post:
+      tags:
+      - Serviços
+      summary: Associar serviço a reserva
+      operationId: associarServicoAReserva
+      description: Associa um serviço existente a uma reserva.
+      parameters:
+      - name: reservaId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+        description: Identificador da reserva.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssociarServicoRequest'
+      responses:
+        '201':
+          description: Serviço associado à reserva.
+        '400':
+          description: Pedido inválido ou regra de negócio violada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '401':
+          description: Não autenticado. Token JWT ausente, inválido ou expirado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '403':
+          description: Acesso recusado. O utilizador autenticado não tem permissões suficientes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '404':
+          description: Recurso não encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '500':
+          description: Erro interno inesperado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+  /api/servicos/reserva/{reservaId}/{reservaServicoId}:
+    delete:
+      tags:
+      - Serviços
+      summary: Remover serviço de reserva
+      operationId: removerServicoDeReserva
+      description: Remove uma associação de serviço de uma reserva.
+      parameters:
+      - name: reservaId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+        description: Identificador da reserva.
+      - name: reservaServicoId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+        description: Identificador da associação reserva-serviço.
+      responses:
+        '204':
+          description: Serviço removido da reserva.
+        '401':
+          description: Não autenticado. Token JWT ausente, inválido ou expirado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '403':
+          description: Acesso recusado. O utilizador autenticado não tem permissões suficientes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '404':
+          description: Recurso não encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '500':
+          description: Erro interno inesperado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+  /api/servicos/dia:
+    get:
+      tags:
+      - Serviços
+      summary: Listar serviços do dia
+      operationId: listarServicosDoDia
+      description: Lista serviços a executar numa data. Se a data for omitida, usa a data atual do servidor.
+      parameters:
+      - name: data
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date
+        description: Data de execução.
+      responses:
+        '200':
+          description: Lista de serviços do dia.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ServicoResponse'
+        '401':
+          description: Não autenticado. Token JWT ausente, inválido ou expirado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '403':
+          description: Acesso recusado. O utilizador autenticado não tem permissões suficientes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '500':
+          description: Erro interno inesperado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+  /api/pagamentos/reserva/{reservaId}:
+    post:
+      tags:
+      - Pagamentos
+      summary: Registar pagamento de uma reserva
+      operationId: registarPagamento
+      description: Regista um pagamento associado a uma reserva. Apenas FUNC_ADMINISTRATIVO ou ADMIN.
+      parameters:
+      - name: reservaId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+        description: Identificador da reserva.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PagamentoRequest'
+      responses:
+        '201':
+          description: Pagamento registado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagamentoResponse'
+        '400':
+          description: Pedido inválido ou regra de negócio violada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '401':
+          description: Não autenticado. Token JWT ausente, inválido ou expirado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '403':
+          description: Acesso recusado. O utilizador autenticado não tem permissões suficientes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '404':
+          description: Recurso não encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '500':
+          description: Erro interno inesperado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+    get:
+      tags:
+      - Pagamentos
+      summary: Listar pagamentos de uma reserva
+      operationId: listarPagamentosPorReserva
+      description: Lista pagamentos associados a uma reserva.
+      parameters:
+      - name: reservaId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+        description: Identificador da reserva.
+      responses:
+        '200':
+          description: Lista de pagamentos.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PagamentoResponse'
+        '401':
+          description: Não autenticado. Token JWT ausente, inválido ou expirado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '404':
+          description: Recurso não encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '500':
+          description: Erro interno inesperado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+  /api/pagamentos/reserva/{reservaId}/resumo:
+    get:
+      tags:
+      - Pagamentos
+      summary: Obter resumo financeiro da reserva
+      operationId: obterResumoReserva
+      description: Calcula total da reserva, total pago e saldo pendente.
+      parameters:
+      - name: reservaId
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+        description: Identificador da reserva.
+      responses:
+        '200':
+          description: Resumo financeiro.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResumoFinanceiroResponse'
+        '401':
+          description: Não autenticado. Token JWT ausente, inválido ou expirado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '404':
+          description: Recurso não encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '500':
+          description: Erro interno inesperado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+  /api/pagamentos/{id}:
+    get:
+      tags:
+      - Pagamentos
+      summary: Obter pagamento por ID
+      operationId: obterPagamento
+      description: Consulta um pagamento.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+        description: Identificador numérico do recurso.
+      responses:
+        '200':
+          description: Pagamento encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagamentoResponse'
+        '401':
+          description: Não autenticado. Token JWT ausente, inválido ou expirado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '403':
+          description: Acesso recusado. O utilizador autenticado não tem permissões suficientes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '404':
+          description: Recurso não encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '500':
+          description: Erro interno inesperado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+  /api/pagamentos/periodo:
+    get:
+      tags:
+      - Pagamentos
+      summary: Listar pagamentos por período
+      operationId: listarPagamentosPorPeriodo
+      description: Lista pagamentos entre duas datas.
+      parameters:
+      - name: inicio
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+        description: Data inicial.
+      - name: fim
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+        description: Data final.
+      responses:
+        '200':
+          description: Lista de pagamentos no período.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PagamentoResponse'
+        '400':
+          description: Pedido inválido ou regra de negócio violada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '401':
+          description: Não autenticado. Token JWT ausente, inválido ou expirado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '403':
+          description: Acesso recusado. O utilizador autenticado não tem permissões suficientes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '500':
+          description: Erro interno inesperado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+  /api/pagamentos/{id}/fatura:
+    get:
+      tags:
+      - Pagamentos
+      summary: Gerar fatura em PDF
+      operationId: gerarFaturaPagamento
+      description: Gera/devolve a fatura simulada em PDF de um pagamento.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+        description: Identificador numérico do recurso.
+      responses:
+        '200':
+          description: Fatura PDF.
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '401':
+          description: Não autenticado. Token JWT ausente, inválido ou expirado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '404':
+          description: Recurso não encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '500':
+          description: Erro interno inesperado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+  /api/relatorios/ocupacao:
+    get:
+      tags:
+      - Relatórios
+      summary: Relatório de ocupação
+      operationId: relatorioOcupacao
+      description: Disponível para DIRECAO ou ADMIN.
+      parameters:
+      - name: inicio
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+        description: Data inicial.
+      - name: fim
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+        description: Data final.
+      responses:
+        '200':
+          description: Relatório gerado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RelatorioOcupacaoResponse'
+        '400':
+          description: Pedido inválido ou regra de negócio violada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '401':
+          description: Não autenticado. Token JWT ausente, inválido ou expirado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '403':
+          description: Acesso recusado. O utilizador autenticado não tem permissões suficientes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '500':
+          description: Erro interno inesperado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+  /api/relatorios/receitas:
+    get:
+      tags:
+      - Relatórios
+      summary: Relatório de receitas
+      operationId: relatorioReceitas
+      description: Disponível para DIRECAO ou ADMIN.
+      parameters:
+      - name: inicio
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+        description: Data inicial.
+      - name: fim
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+        description: Data final.
+      responses:
+        '200':
+          description: Relatório gerado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RelatorioReceitasResponse'
+        '400':
+          description: Pedido inválido ou regra de negócio violada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '401':
+          description: Não autenticado. Token JWT ausente, inválido ou expirado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '403':
+          description: Acesso recusado. O utilizador autenticado não tem permissões suficientes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '500':
+          description: Erro interno inesperado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+  /api/relatorios/servicos:
+    get:
+      tags:
+      - Relatórios
+      summary: Relatório de serviços mais requisitados
+      operationId: relatorioServicos
+      description: Disponível para DIRECAO ou ADMIN.
+      parameters:
+      - name: inicio
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+        description: Data inicial.
+      - name: fim
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+        description: Data final.
+      responses:
+        '200':
+          description: Relatório gerado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RelatorioServicosResponse'
+        '400':
+          description: Pedido inválido ou regra de negócio violada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '401':
+          description: Não autenticado. Token JWT ausente, inválido ou expirado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '403':
+          description: Acesso recusado. O utilizador autenticado não tem permissões suficientes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '500':
+          description: Erro interno inesperado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+  /api/relatorios/ocupacao/pdf:
+    get:
+      tags:
+      - Relatórios
+      summary: Exportar relatório de ocupação em PDF
+      operationId: exportarOcupacaoPdf
+      description: Disponível para DIRECAO ou ADMIN.
+      parameters:
+      - name: inicio
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+        description: Data inicial.
+      - name: fim
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+        description: Data final.
+      responses:
+        '200':
+          description: Relatório PDF.
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: Pedido inválido ou regra de negócio violada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '401':
+          description: Não autenticado. Token JWT ausente, inválido ou expirado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '403':
+          description: Acesso recusado. O utilizador autenticado não tem permissões suficientes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '500':
+          description: Erro interno inesperado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+  /api/relatorios/receitas/csv:
+    get:
+      tags:
+      - Relatórios
+      summary: Exportar relatório de receitas em CSV
+      operationId: exportarReceitasCsv
+      description: Disponível para DIRECAO ou ADMIN.
+      parameters:
+      - name: inicio
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+        description: Data inicial.
+      - name: fim
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+        description: Data final.
+      responses:
+        '200':
+          description: Relatório CSV.
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: Pedido inválido ou regra de negócio violada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '401':
+          description: Não autenticado. Token JWT ausente, inválido ou expirado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '403':
+          description: Acesso recusado. O utilizador autenticado não tem permissões suficientes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+        '500':
+          description: Erro interno inesperado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErroResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 'Usar o token devolvido por POST /api/auth/login no formato: Bearer <token>.'
+  schemas:
+    TipoConta:
+      type: string
+      enum:
+      - PROPRIETARIO
+      - FUNC_ADMINISTRATIVO
+      - FUNC_OPERACIONAL
+      - DIRECAO
+      - ADMIN
+    TipoContaFuncionario:
+      type: string
+      enum:
+      - FUNC_ADMINISTRATIVO
+      - FUNC_OPERACIONAL
+      - DIRECAO
+      - ADMIN
+    Especie:
+      type: string
+      enum:
+      - CAO
+      - GATO
+    Porte:
+      type: string
+      enum:
+      - PEQUENO_MEDIO
+      - GRANDE
+      - NAO_APLICAVEL
+    EstadoReserva:
+      type: string
+      enum:
+      - PENDENTE
+      - CONFIRMADA
+      - EM_ESTADIA
+      - CONCLUIDA
+      - CANCELADA
+    RegistarUtilizadorRequest:
+      type: object
+      required:
+      - email
+      - nome
+      - telefone
+      - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: rui@example.com
+        nome:
+          type: string
+          example: Rui Abreu
+        telefone:
+          type: string
+          example: '912345678'
+        password:
+          type: string
+          format: password
+          example: password123
+    LoginRequest:
+      type: object
+      required:
+      - email
+      - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: rui@example.com
+        password:
+          type: string
+          format: password
+          example: password123
+    EditarPerfilRequest:
+      type: object
+      required:
+      - nome
+      - telefone
+      properties:
+        nome:
+          type: string
+          example: Rui Abreu
+        telefone:
+          type: string
+          example: '912345678'
+    UtilizadorResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        email:
+          type: string
+          format: email
+          example: rui@example.com
+        nome:
+          type: string
+          example: Rui Abreu
+        telefone:
+          type: string
+          example: '912345678'
+        tipoConta:
+          $ref: '#/components/schemas/TipoConta'
+        ativo:
+          type: boolean
+          example: true
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiJ9...
+        utilizador:
+          $ref: '#/components/schemas/UtilizadorResponse'
+    AnimalRequest:
+      type: object
+      required:
+      - nome
+      - especie
+      - porte
+      properties:
+        nome:
+          type: string
+          example: Tobias
+        especie:
+          $ref: '#/components/schemas/Especie'
+        porte:
+          $ref: '#/components/schemas/Porte'
+        raca:
+          type: string
+          example: Labrador
+        dataNascimento:
+          type: string
+          format: date
+          example: '2020-05-12'
+        observacoes:
+          type: string
+          example: Animal sociável, necessita de alimentação específica.
+    AnimalResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 10
+        nome:
+          type: string
+          example: Tobias
+        especie:
+          $ref: '#/components/schemas/Especie'
+        porte:
+          $ref: '#/components/schemas/Porte'
+        raca:
+          type: string
+          example: Labrador
+        dataNascimento:
+          type: string
+          format: date
+          example: '2020-05-12'
+        observacoes:
+          type: string
+          example: Animal sociável.
+        proprietarioId:
+          type: integer
+          format: int64
+          example: 1
+        proprietarioNome:
+          type: string
+          example: Rui Abreu
+    CriarReservaRequest:
+      type: object
+      required:
+      - animalId
+      - dataInicio
+      - dataFim
+      properties:
+        animalId:
+          type: integer
+          format: int64
+          example: 10
+        dataInicio:
+          type: string
+          format: date
+          example: '2026-06-01'
+        dataFim:
+          type: string
+          format: date
+          example: '2026-06-05'
+    ReservaResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 100
+        animalId:
+          type: integer
+          format: int64
+          example: 10
+        animalNome:
+          type: string
+          example: Tobias
+        proprietarioNome:
+          type: string
+          example: Rui Abreu
+        codigoEspaco:
+          type: string
+          nullable: true
+          example: CA1
+          description: Nulo até ao momento do check-in.
+        dataInicio:
+          type: string
+          format: date
+          example: '2026-06-01'
+        dataFim:
+          type: string
+          format: date
+          example: '2026-06-05'
+        estado:
+          $ref: '#/components/schemas/EstadoReserva'
+        instanteCheckIn:
+          type: string
+          format: date-time
+          nullable: true
+          example: '2026-06-01T10:30:00'
+        instanteCheckOut:
+          type: string
+          format: date-time
+          nullable: true
+          example: '2026-06-05T12:00:00'
+        precoBase:
+          type: number
+          format: double
+          example: 80.0
+        totalComServicos:
+          type: number
+          format: double
+          example: 110.0
+    DisponibilidadeResponse:
+      type: object
+      properties:
+        disponivel:
+          type: boolean
+          example: true
+        espacosLivres:
+          type: integer
+          example: 3
+        precoEstimado:
+          type: number
+          format: double
+          example: 80.0
+    ServicoRequest:
+      type: object
+      required:
+      - nome
+      - preco
+      - capacidadeDiaria
+      properties:
+        nome:
+          type: string
+          example: Banho
+        descricao:
+          type: string
+          example: Banho completo durante a estadia.
+        preco:
+          type: number
+          format: double
+          example: 20.0
+        capacidadeDiaria:
+          type: integer
+          example: 5
+    ServicoResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 5
+        nome:
+          type: string
+          example: Banho
+        descricao:
+          type: string
+          example: Banho completo durante a estadia.
+        preco:
+          type: number
+          format: double
+          example: 20.0
+        capacidadeDiaria:
+          type: integer
+          example: 5
+        disponivel:
+          type: boolean
+          example: true
+    AssociarServicoRequest:
+      type: object
+      required:
+      - servicoId
+      - dataExecucao
+      properties:
+        servicoId:
+          type: integer
+          format: int64
+          example: 5
+        dataExecucao:
+          type: string
+          format: date
+          example: '2026-06-03'
+    PagamentoRequest:
+      type: object
+      required:
+      - valor
+      - metodoPagamento
+      properties:
+        valor:
+          type: number
+          format: double
+          example: 110.0
+        metodoPagamento:
+          type: string
+          example: MBWAY
+    PagamentoResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 77
+        reservaId:
+          type: integer
+          format: int64
+          example: 100
+        valor:
+          type: number
+          format: double
+          example: 110.0
+        metodoPagamento:
+          type: string
+          example: MBWAY
+        instantePagamento:
+          type: string
+          format: date-time
+          example: '2026-06-01T11:00:00'
+        caminhoFatura:
+          type: string
+          nullable: true
+          example: /faturas/fatura-77.pdf
+    ResumoFinanceiroResponse:
+      type: object
+      properties:
+        reservaId:
+          type: integer
+          format: int64
+          example: 100
+        totalReserva:
+          type: number
+          format: double
+          example: 110.0
+        totalPago:
+          type: number
+          format: double
+          example: 50.0
+        saldoPendente:
+          type: number
+          format: double
+          example: 60.0
+    RelatorioOcupacaoResponse:
+      type: object
+      properties:
+        inicio:
+          type: string
+          format: date
+          example: '2026-06-01'
+        fim:
+          type: string
+          format: date
+          example: '2026-06-30'
+        totalEspacos:
+          type: integer
+          example: 48
+        taxaMediaOcupacao:
+          type: number
+          format: double
+          example: 72.5
+        ocupacaoPorDia:
+          type: object
+          additionalProperties:
+            type: integer
+          example:
+            '2026-06-01': 20
+            '2026-06-02': 22
+    RelatorioReceitasResponse:
+      type: object
+      properties:
+        inicio:
+          type: string
+          format: date
+          example: '2026-01-01'
+        fim:
+          type: string
+          format: date
+          example: '2026-12-31'
+        totalReceitas:
+          type: number
+          format: double
+          example: 3200.0
+        receitasPorMes:
+          type: object
+          additionalProperties:
+            type: number
+            format: double
+          example:
+            2026-06: 1200.0
+            2026-07: 2000.0
+    ItemServicoResponse:
+      type: object
+      properties:
+        nomeServico:
+          type: string
+          example: Banho
+        totalRequisicoes:
+          type: integer
+          format: int64
+          example: 25
+    RelatorioServicosResponse:
+      type: object
+      properties:
+        inicio:
+          type: string
+          format: date
+        fim:
+          type: string
+          format: date
+        servicosMaisRequisitados:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemServicoResponse'
+    ErroResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: integer
+          example: 400
+        erro:
+          type: string
+          example: Bad Request
+        mensagem:
+          type: string
+          example: Datas inválidas.

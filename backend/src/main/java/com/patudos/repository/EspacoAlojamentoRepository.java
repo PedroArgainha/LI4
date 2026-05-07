@@ -17,7 +17,7 @@ public interface EspacoAlojamentoRepository extends JpaRepository<EspacoAlojamen
     List<EspacoAlojamento> findByEspecieAndPorteAndEstado(Especie especie, Porte porte, EstadoEspaco estado);
 
     // Devolve espaços compatíveis que não tenham reservas sobrepostas para o período pedido.
-    // Um espaço está livre se não existir nenhuma reserva em estados ativos (CONFIRMADA ou EM_ESTADIA)
+    // Um espaço está livre se não existir nenhuma reserva em estados ativos (PENDENTE ou EM_ESTADIA)
     // cujo intervalo de datas intersecte [dataInicio, dataFim].
     @Query("""
         SELECT e FROM EspacoAlojamento e
@@ -27,7 +27,7 @@ public interface EspacoAlojamentoRepository extends JpaRepository<EspacoAlojamen
           AND e.id NOT IN (
               SELECT r.espaco.id FROM Reserva r
               WHERE r.espaco IS NOT NULL
-                AND r.estado IN ('CONFIRMADA', 'EM_ESTADIA')
+                AND r.estado IN ('PENDENTE', 'EM_ESTADIA')
                 AND r.dataInicio < :dataFim
                 AND r.dataFim > :dataInicio
           )

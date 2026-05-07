@@ -10,6 +10,7 @@ import com.patudos.entity.Reserva;
 import com.patudos.repository.PagamentoRepository;
 import com.patudos.repository.ReservaRepository;
 import com.patudos.service.interfaces.IGestaoPagamentos;
+import com.patudos.util.PDFGenerator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,14 +20,17 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
+
 @Service
 public class GestaoPagamentosService implements IGestaoPagamentos {
 
+    private final PDFGenerator pdfGenerator;
     private final PagamentoRepository pagamentoRepository;
     private final ReservaRepository reservaRepository;
 
-    public GestaoPagamentosService(PagamentoRepository pagamentoRepository,
+    public GestaoPagamentosService(PDFGenerator pdfGenerator, PagamentoRepository pagamentoRepository,
                                    ReservaRepository reservaRepository) {
+        this.pdfGenerator = pdfGenerator;
         this.pagamentoRepository = pagamentoRepository;
         this.reservaRepository = reservaRepository;
     }
@@ -92,18 +96,10 @@ public class GestaoPagamentosService implements IGestaoPagamentos {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public byte[] gerarFatura(Long pagamentoId) {
-        // Placeholder — numa implementação real usaria iText ou JasperReports
-        // para gerar um PDF com os dados da reserva e do pagamento
         Pagamento p = encontrarPagamento(pagamentoId);
-        String conteudo = String.format(
-                "FATURA\nReserva: %d\nValor: %.2f€\nData: %s\nMétodo: %s",
-                p.getReserva().getId(),
-                p.getValor(),
-                p.getInstantePagamento(),
-                p.getMetodoPagamento()
-        );
-        return conteudo.getBytes();
+        return pdfGenerator.gerarFatura(p);
     }
 
     private Reserva encontrarReserva(Long id) {

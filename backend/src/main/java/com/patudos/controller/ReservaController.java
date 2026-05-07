@@ -44,12 +44,6 @@ public class ReservaController {
                 .body(gestaoReservas.criarReserva(request));
     }
 
-    @PatchMapping("/{id}/confirmar")
-    @PreAuthorize("hasAnyRole('FUNC_ADMINISTRATIVO', 'ADMIN')")
-    public ResponseEntity<ReservaResponse> confirmar(@PathVariable Long id) {
-        return ResponseEntity.ok(gestaoReservas.confirmarReserva(id));
-    }
-
     @PatchMapping("/{id}/checkin")
     @PreAuthorize("hasAnyRole('FUNC_ADMINISTRATIVO', 'ADMIN')")
     public ResponseEntity<ReservaResponse> checkIn(

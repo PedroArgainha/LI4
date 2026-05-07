@@ -3,7 +3,6 @@ import type { Especie, Porte } from '../../types/animal';
 
 const ESTADO_CONFIG: Record<EstadoReserva, { label: string; bg: string; text: string; dot: string }> = {
   PENDENTE:   { label: 'Pendente',   bg: 'bg-[#FDD587]', text: 'text-[#785A19]', dot: 'bg-[#775A19]' },
-  CONFIRMADA: { label: 'Confirmada', bg: 'bg-[#D3E4FB]', text: 'text-[#0C1D2D]', dot: 'bg-[#041525]' },
   EM_ESTADIA: { label: 'Em Estadia', bg: 'bg-green-100',  text: 'text-green-900',  dot: 'bg-green-700' },
   CONCLUIDA:  { label: 'Concluída',  bg: 'bg-[#E1E3E4]', text: 'text-[#44474C]', dot: 'bg-[#74777D]' },
   CANCELADA:  { label: 'Cancelada',  bg: 'bg-[#FFDAD6]', text: 'text-[#93000A]', dot: 'bg-[#BA1A1A]' },

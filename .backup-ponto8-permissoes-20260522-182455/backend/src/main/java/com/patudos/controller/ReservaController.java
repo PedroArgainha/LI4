@@ -85,7 +85,7 @@ public class ReservaController {
 
     // Mapa diário para funcionário operacional
     @GetMapping("/ativas")
-    @PreAuthorize("hasAnyRole('FUNC_OPERACIONAL', 'FUNC_ADMINISTRATIVO', 'DIRECAO', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('FUNC_OPERACIONAL', 'FUNC_ADMINISTRATIVO', 'ADMIN')")
     public ResponseEntity<List<ReservaResponse>> listarEstadiasAtivas(
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data) {

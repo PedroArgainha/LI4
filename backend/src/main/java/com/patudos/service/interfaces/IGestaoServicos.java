@@ -2,6 +2,7 @@ package com.patudos.service.interfaces;
 
 import com.patudos.dto.request.ServicoRequest;
 import com.patudos.dto.request.AssociarServicoRequest;
+import com.patudos.dto.response.ServicoAgendadoResponse;
 import com.patudos.dto.response.ServicoResponse;
 import java.time.LocalDate;
 import java.util.List;
@@ -23,8 +24,8 @@ public interface IGestaoServicos {
     void associarAReserva(Long reservaId, AssociarServicoRequest request);
     void removerDeReserva(Long reservaId, Long reservaServicoId);
 
-    void marcarComoRealizado(Long reservaId, Long reservaServicoId);
+    ServicoAgendadoResponse marcarComoRealizado(Long reservaId, Long reservaServicoId);
 
     // Serviços a executar num dia específico (para funcionário operacional)
-    List<ServicoResponse> listarServicosDoDia(LocalDate data);
+    List<ServicoAgendadoResponse> listarServicosDoDia(LocalDate data);
 }

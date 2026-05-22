@@ -1,5 +1,5 @@
 import http from './http';
-import type { Utilizador, TipoConta, RegistoRequest } from '../types/auth';
+import type { Utilizador, TipoConta, RegistoRequest, EditarPerfilRequest } from '../types/auth';
 
 export const utilizadorApi = {
     listarTodos: () =>
@@ -16,6 +16,6 @@ export const utilizadorApi = {
     desativarConta: (id: number) =>
         http.delete(`/utilizadores/${id}`).then((r) => r.data),
 
-    editarPerfil: (id: number, data: { nome: string; telefone: string }) =>
+    editarPerfil: (id: number, data: EditarPerfilRequest) =>
         http.put<Utilizador>(`/utilizadores/${id}`, data).then((r) => r.data),
 };

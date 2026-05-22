@@ -1,6 +1,8 @@
 package com.patudos.dto.response;
 
 import com.patudos.enums.EstadoReserva;
+import com.patudos.enums.Especie;
+import com.patudos.enums.Porte;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -9,6 +11,8 @@ public record ReservaResponse(
         Long id,
         Long animalId,
         String animalNome,
+        Especie animalEspecie,
+        Porte animalPorte,
         String proprietarioNome,
         String codigoEspaco,       // null até ao check-in
         LocalDate dataInicio,

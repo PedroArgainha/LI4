@@ -213,6 +213,8 @@ public class GestaoReservasService implements IGestaoReservas {
                 r.getId(),
                 r.getAnimal().getId(),
                 r.getAnimal().getNome(),
+                r.getAnimal().getEspecie(),
+                r.getAnimal().getPorte(),
                 r.getAnimal().getProprietario().getNome(),
                 codigoEspaco,
                 r.getDataInicio(),

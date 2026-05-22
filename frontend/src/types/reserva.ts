@@ -1,34 +1,26 @@
-export type EstadoReserva =
-  | 'PENDENTE'
-  | 'EM_ESTADIA'
-  | 'CONCLUIDA'
-  | 'CANCELADA';
+import type { Especie, Porte } from './animal';
 
-export interface ReservaServico {
-  id: number;
-  servicoId: number;
-  servicoNome: string;
-  servicoPreco: number;
-  dataExecucao: string;
-}
+export type EstadoReserva =
+    | 'PENDENTE'
+    | 'EM_ESTADIA'
+    | 'CONCLUIDA'
+    | 'CANCELADA';
 
 export interface Reserva {
   id: number;
   animalId: number;
   animalNome?: string;
-  proprietarioId?: number;
+  animalEspecie?: Especie;
+  animalPorte?: Porte;
   proprietarioNome?: string;
-  espacoId?: number;
-  espacoCodigo?: string;
+  codigoEspaco?: string | null;
   dataInicio: string;
   dataFim: string;
   estado: EstadoReserva;
-  instanteCheckIn?: string;
-  instanteCheckOut?: string;
+  instanteCheckIn?: string | null;
+  instanteCheckOut?: string | null;
   precoBase: number;
-  servicos: ReservaServico[];
-  totalServicos?: number;
-  totalReserva?: number;
+  totalComServicos: number;
 }
 
 export interface ReservaRequest {
@@ -37,10 +29,8 @@ export interface ReservaRequest {
   dataFim: string;
 }
 
-export interface DisponibilidadeItem {
-  espacoId: number;
-  codigo: string;
-  especie: string;
-  porte: string;
-  estado: string;
+export interface DisponibilidadeResponse {
+  disponivel: boolean;
+  espacosLivres: number;
+  precoEstimado: number;
 }

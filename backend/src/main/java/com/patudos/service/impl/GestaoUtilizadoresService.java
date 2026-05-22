@@ -34,8 +34,10 @@ public class GestaoUtilizadoresService implements IGestaoUtilizadores {
 
     @Override
     @Transactional
-    public UtilizadorResponse registarProprietario(RegistarUtilizadorRequest request) {
-        return criarUtilizador(request, TipoConta.PROPRIETARIO);
+    public LoginResponse registarProprietario(RegistarUtilizadorRequest request) {
+        Utilizador utilizador = criarUtilizador(request, TipoConta.PROPRIETARIO);
+        String token = jwtService.gerarToken(utilizador.getEmail(), utilizador.getTipoConta().name());
+        return new LoginResponse(token, toResponse(utilizador));
     }
 
     @Override
@@ -45,14 +47,15 @@ public class GestaoUtilizadoresService implements IGestaoUtilizadores {
             throw new RegraDeNegocioException(
                     "Use registarProprietario() para criar contas de proprietários.");
         }
-        return criarUtilizador(request, tipo);
+        return toResponse(criarUtilizador(request, tipo));
     }
 
-    private UtilizadorResponse criarUtilizador(RegistarUtilizadorRequest request, TipoConta tipo) {
+    private Utilizador criarUtilizador(RegistarUtilizadorRequest request, TipoConta tipo) {
         if (utilizadorRepository.existsByEmail(request.email())) {
             throw new RegraDeNegocioException(
                     "Já existe uma conta com o email: " + request.email());
         }
+
         Utilizador u = new Utilizador(
                 request.email(),
                 request.nome(),
@@ -60,7 +63,8 @@ public class GestaoUtilizadoresService implements IGestaoUtilizadores {
                 passwordEncoder.encode(request.password()),
                 tipo
         );
-        return toResponse(utilizadorRepository.save(u));
+
+        return utilizadorRepository.save(u);
     }
 
     @Override

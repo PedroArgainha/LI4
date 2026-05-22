@@ -83,26 +83,12 @@ export default function App() {
             <Route index element={<BackofficeDashboard />} />
             <Route path="reservas" element={<ReservasBackoffice />} />
             <Route path="animais" element={<AnimaisBackoffice />} />
-            <Route
-              path="pagamentos"
-              element={
-                <ProtectedRoute allowedRoles={['FUNC_ADMINISTRATIVO', 'DIRECAO', 'ADMIN']}>
-                  <PagamentosPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="servicos-dia"
-              element={
-                <ProtectedRoute allowedRoles={['FUNC_OPERACIONAL', 'FUNC_ADMINISTRATIVO', 'ADMIN']}>
-                  <ServicosDiaPage />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="pagamentos" element={<PagamentosPage />} />
+            <Route path="servicos-dia" element={<ServicosDiaPage />} />
             <Route
               path="utilizadores"
               element={
-                <ProtectedRoute allowedRoles={['ADMIN']}>
+                <ProtectedRoute allowedRoles={['ADMIN', 'DIRECAO']}>
                   <UtilizadoresPage />
                 </ProtectedRoute>
               }

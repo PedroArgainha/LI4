@@ -6,7 +6,7 @@ import {
   ChevronDown, Building2
 } from 'lucide-react';
 import { useState } from 'react';
-import { isDirecao, isAdmin, ROLE_LABELS } from '../utils/roles';
+import { isDirecao, isAdminOrDirecao, ROLE_LABELS } from '../utils/roles';
 
 export default function BackofficeLayout() {
   const { utilizador, logout } = useAuthStore();
@@ -25,8 +25,8 @@ export default function BackofficeLayout() {
     { to: '/backoffice/reservas', label: 'Reservas', icon: Calendar, show: true },
     { to: '/backoffice/animais', label: 'Animais', icon: Dog, show: true },
     { to: '/backoffice/servicos-dia', label: 'Serviços do Dia', icon: Wrench, show: role === 'FUNC_OPERACIONAL' || role === 'FUNC_ADMINISTRATIVO' || role === 'ADMIN' },
-    { to: '/backoffice/pagamentos', label: 'Pagamentos', icon: CreditCard, show: role === 'FUNC_ADMINISTRATIVO' || role === 'DIRECAO' || role === 'ADMIN' },
-    { to: '/backoffice/utilizadores', label: 'Utilizadores', icon: Users, show: isAdmin(role) },
+    { to: '/backoffice/pagamentos', label: 'Pagamentos', icon: CreditCard, show: role === 'FUNC_ADMINISTRATIVO' || role === 'ADMIN' },
+    { to: '/backoffice/utilizadores', label: 'Utilizadores', icon: Users, show: isAdminOrDirecao(role) },
     { to: '/backoffice/espacos', label: 'Espaços', icon: Building2, show: isDirecao(role) },
     { to: '/backoffice/servicos', label: 'Catálogo Serviços', icon: Settings, show: isDirecao(role) },
     { to: '/backoffice/relatorios', label: 'Relatórios', icon: BarChart2, show: isDirecao(role) },

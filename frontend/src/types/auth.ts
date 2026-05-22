@@ -30,3 +30,9 @@ export interface RegistoRequest {
   telefone: string;
   password: string;
 }
+
+
+export interface EditarPerfilRequest {
+  nome: string;
+  telefone: string;
+}

@@ -2,6 +2,7 @@ package com.patudos.service.impl;
 
 import com.patudos.dto.request.AssociarServicoRequest;
 import com.patudos.dto.request.ServicoRequest;
+import com.patudos.dto.response.ServicoAgendadoResponse;
 import com.patudos.dto.response.ServicoResponse;
 import com.patudos.exception.RecursoNaoEncontradoException;
 import com.patudos.exception.RegraDeNegocioException;
@@ -10,6 +11,7 @@ import com.patudos.entity.ReservaServico;
 import com.patudos.entity.Servico;
 import com.patudos.enums.EstadoReserva;
 import com.patudos.repository.ReservaRepository;
+import com.patudos.repository.ReservaServicoRepository;
 import com.patudos.repository.ServicoRepository;
 import com.patudos.service.interfaces.IGestaoServicos;
 import org.springframework.stereotype.Service;
@@ -23,11 +25,14 @@ public class GestaoServicosService implements IGestaoServicos {
 
     private final ServicoRepository servicoRepository;
     private final ReservaRepository reservaRepository;
+    private final ReservaServicoRepository reservaServicoRepository;
 
     public GestaoServicosService(ServicoRepository servicoRepository,
-                                 ReservaRepository reservaRepository) {
+                                 ReservaRepository reservaRepository,
+                                 ReservaServicoRepository reservaServicoRepository) {
         this.servicoRepository = servicoRepository;
         this.reservaRepository = reservaRepository;
+        this.reservaServicoRepository = reservaServicoRepository;
     }
 
     @Override
@@ -153,35 +158,60 @@ public class GestaoServicosService implements IGestaoServicos {
     }
 
     @Override
-    public List<ServicoResponse> listarServicosDoDia(LocalDate data) {
-        // Devolve os serviços distintos agendados para um determinado dia
-        return reservaRepository.findAll().stream()
-                .flatMap(r -> r.getServicos().stream())
-                .filter(rs -> rs.getDataExecucao().equals(data))
-                .map(rs -> toResponse(rs.getServico()))
-                .distinct()
+    public List<ServicoAgendadoResponse> listarServicosDoDia(LocalDate data) {
+        return reservaServicoRepository
+                .findServicosAgendadosPorData(data, EstadoReserva.CANCELADA)
+                .stream()
+                .map(this::toServicoAgendadoResponse)
                 .toList();
     }
 
     @Override
     @Transactional
-    public void marcarComoRealizado(Long reservaId, Long reservaServicoId) {
-        Reserva reserva = reservaRepository.findById(reservaId)
-                .orElseThrow(() -> new RecursoNaoEncontradoException(
-                        "Reserva não encontrada com id: " + reservaId));
-
-        ReservaServico rs = reserva.getServicos().stream()
-                .filter(s -> s.getId().equals(reservaServicoId))
-                .findFirst()
+    public ServicoAgendadoResponse marcarComoRealizado(Long reservaId, Long reservaServicoId) {
+        ReservaServico rs = reservaServicoRepository.findById(reservaServicoId)
                 .orElseThrow(() -> new RecursoNaoEncontradoException(
                         "Serviço associado não encontrado com id: " + reservaServicoId));
+
+        Reserva reserva = rs.getReserva();
+
+        if (!reserva.getId().equals(reservaId)) {
+            throw new RegraDeNegocioException(
+                    "O serviço indicado não pertence à reserva " + reservaId + ".");
+        }
+
+        if (reserva.getEstado() == EstadoReserva.CANCELADA) {
+            throw new RegraDeNegocioException(
+                    "Não é possível marcar serviços de uma reserva cancelada.");
+        }
 
         if (rs.isRealizado()) {
             throw new RegraDeNegocioException("O serviço já foi marcado como realizado.");
         }
 
         rs.setRealizado(true);
-        reservaRepository.save(reserva);
+        return toServicoAgendadoResponse(reservaServicoRepository.save(rs));
+    }
+
+
+    private ServicoAgendadoResponse toServicoAgendadoResponse(ReservaServico rs) {
+        Reserva reserva = rs.getReserva();
+        Servico servico = rs.getServico();
+
+        return new ServicoAgendadoResponse(
+                rs.getId(),
+                reserva.getId(),
+                servico.getId(),
+                servico.getNome(),
+                reserva.getAnimal().getId(),
+                reserva.getAnimal().getNome(),
+                reserva.getAnimal().getProprietario().getNome(),
+                reserva.getEspaco() != null ? reserva.getEspaco().getCodigo() : null,
+                rs.getDataExecucao(),
+                rs.isRealizado(),
+                servico.getPreco(),
+                reserva.getEstado()
+        );
     }
 
     private Servico encontrarServico(Long id) {

@@ -10,8 +10,8 @@ import java.util.List;
 
 public interface IGestaoUtilizadores {
 
-    // Registo de proprietário (área pública)
-    UtilizadorResponse registarProprietario(RegistarUtilizadorRequest request);
+    // Registo de proprietário (área pública) — devolve token para iniciar sessão automaticamente
+    LoginResponse registarProprietario(RegistarUtilizadorRequest request);
 
     // Criação de conta de funcionário (só admin)
     UtilizadorResponse criarFuncionario(RegistarUtilizadorRequest request, TipoConta tipo);

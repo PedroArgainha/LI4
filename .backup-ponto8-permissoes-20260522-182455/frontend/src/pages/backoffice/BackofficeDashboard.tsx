@@ -9,8 +9,6 @@ import { Loader2 } from 'lucide-react';
 
 export default function BackofficeDashboard() {
   const { utilizador } = useAuthStore();
-  const role = utilizador?.tipoConta;
-  const podeVerPagamentos = role === 'FUNC_ADMINISTRATIVO' || role === 'DIRECAO' || role === 'ADMIN';
   const today = new Date().toISOString().split('T')[0];
   const monthStart = today.substring(0, 7) + '-01';
 
@@ -27,12 +25,11 @@ export default function BackofficeDashboard() {
   const { data: pagamentos = [] } = useQuery({
     queryKey: ['pagamentos', 'periodo', monthStart, today],
     queryFn: () => pagamentoApi.porPeriodo(monthStart, today),
-    enabled: podeVerPagamentos,
   });
 
   const pendentes = todas.filter((r) => r.estado === 'PENDENTE');
   const checkins = todas.filter((r) => r.dataInicio === today && r.estado === 'PENDENTE');
-  const receita = podeVerPagamentos ? pagamentos.reduce((acc, p) => acc + p.valor, 0) : 0;
+  const receita = pagamentos.reduce((acc, p) => acc + p.valor, 0);
 
   return (
       <div className="space-y-8">
@@ -48,11 +45,7 @@ export default function BackofficeDashboard() {
           <KpiCard label="Animais em estadia"   value={loadingAtivas ? '…' : ativas.length}  icon="pets"       iconBg="bg-[#D3E4FA]" iconColor="text-[#041525]" />
           <KpiCard label="Reservas pendentes"   value={pendentes.length}                      icon="pending"    iconBg="bg-[#FDD587]" iconColor="text-[#261900]" />
           <KpiCard label="Check-ins hoje"       value={checkins.length}                       icon="login"      iconBg="bg-green-100"  iconColor="text-green-800" />
-        {podeVerPagamentos ? (
-          <KpiCard label="Receita (mês)" value={formatMoney(receita)} icon="payments" iconBg="bg-[#EBE1D5]" iconColor="text-[#18140D]" />
-        ) : (
-          <KpiCard label="Acesso operacional" value="—" icon="pets" iconBg="bg-[#EBE1D5]" iconColor="text-[#18140D]" />
-        )}
+          <KpiCard label="Receita (mês)"        value={formatMoney(receita)}                  icon="payments"   iconBg="bg-[#EBE1D5]" iconColor="text-[#18140D]" />
         </div>
 
         <div className="grid lg:grid-cols-2 gap-6">

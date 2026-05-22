@@ -27,7 +27,7 @@ public class UtilizadorController {
     // ── Área pública ──────────────────────────────────────────────────────────
 
     @PostMapping("/auth/registar")
-    public ResponseEntity<UtilizadorResponse> registar(
+    public ResponseEntity<LoginResponse> registar(
             @RequestBody RegistarUtilizadorRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(gestaoUtilizadores.registarProprietario(request));

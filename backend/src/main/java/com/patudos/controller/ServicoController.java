@@ -2,6 +2,7 @@ package com.patudos.controller;
 
 import com.patudos.dto.request.AssociarServicoRequest;
 import com.patudos.dto.request.ServicoRequest;
+import com.patudos.dto.response.ServicoAgendadoResponse;
 import com.patudos.dto.response.ServicoResponse;
 import com.patudos.service.interfaces.IGestaoServicos;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -84,17 +85,16 @@ public class ServicoController {
 
     @PatchMapping("/reserva/{reservaId}/{reservaServicoId}/realizado")
     @PreAuthorize("hasAnyRole('FUNC_OPERACIONAL', 'ADMIN')")
-    public ResponseEntity<Void> marcarRealizado(
+    public ResponseEntity<ServicoAgendadoResponse> marcarRealizado(
             @PathVariable Long reservaId,
             @PathVariable Long reservaServicoId) {
-        gestaoServicos.marcarComoRealizado(reservaId, reservaServicoId);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(gestaoServicos.marcarComoRealizado(reservaId, reservaServicoId));
     }
 
     // Mapa de serviços do dia para funcionário operacional
     @GetMapping("/dia")
     @PreAuthorize("hasAnyRole('FUNC_OPERACIONAL', 'FUNC_ADMINISTRATIVO', 'ADMIN')")
-    public ResponseEntity<List<ServicoResponse>> servicosDoDia(
+    public ResponseEntity<List<ServicoAgendadoResponse>> servicosDoDia(
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data) {
         return ResponseEntity.ok(gestaoServicos.listarServicosDoDia(

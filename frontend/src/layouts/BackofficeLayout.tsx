@@ -1,9 +1,9 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../store/authStore';
+import { useAuthStore } from '../../../../../../../Transferências/hotfix-animais-reservas-checkin (2)/files/frontend/src/store/authStore.ts';
 import {
   PawPrint, Home, Calendar, Dog, CreditCard,
   BarChart2, Settings, LogOut, Users, Wrench,
-  ChevronDown, Building2
+  ChevronDown, Building2, LogIn
 } from 'lucide-react';
 import { useState } from 'react';
 import { isDirecao, isAdmin, ROLE_LABELS } from '../utils/roles';
@@ -23,6 +23,7 @@ export default function BackofficeLayout() {
   const navLinks = [
     { to: '/backoffice', label: 'Dashboard', icon: Home, end: true, show: true },
     { to: '/backoffice/reservas', label: 'Reservas', icon: Calendar, show: true },
+    { to: '/backoffice/checkin', label: 'Check-in / Check-out', icon: LogIn, show: role === 'FUNC_ADMINISTRATIVO' || role === 'ADMIN' },
     { to: '/backoffice/animais', label: 'Animais', icon: Dog, show: true },
     { to: '/backoffice/servicos-dia', label: 'Serviços do Dia', icon: Wrench, show: role === 'FUNC_OPERACIONAL' || role === 'FUNC_ADMINISTRATIVO' || role === 'ADMIN' },
     { to: '/backoffice/pagamentos', label: 'Pagamentos', icon: CreditCard, show: role === 'FUNC_ADMINISTRATIVO' || role === 'DIRECAO' || role === 'ADMIN' },

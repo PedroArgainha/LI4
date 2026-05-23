@@ -9,9 +9,9 @@ import { Modal } from '../../components/ui/Modal';
 import { Tabs } from '../../components/ui/Tabs';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
 import { formatDate, formatMoney } from '../../utils/formatters';
-import type { Reserva } from '../../types/reserva';
+import type { Reserva } from '../../../../../../../../Transferências/hotfix-animais-reservas-checkin (2)/files/frontend/src/types/reserva.ts';
 import type { MetodoPagamento } from '../../types/pagamento';
-import type { EspacoAlojamento } from '../../types/espaco';
+import type { EspacoAlojamento } from '../../../../../../../../Transferências/hotfix-animais-reservas-checkin (2)/files/frontend/src/types/espaco.ts';
 import { Loader2, Eye, LogIn, LogOut, Ban, CreditCard, MapPin } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -24,7 +24,7 @@ export default function ReservasBackoffice() {
   const [espacoId, setEspacoId] = useState('');
   const [pagForm, setPagForm] = useState({ valor: '', metodo: 'MBWAY' as MetodoPagamento });
 
-  const { data: reservas = [], isLoading } = useQuery({
+  const { data: reservas = [], isLoading } = useQuery<Reserva[]>({
     queryKey: ['reservas', 'todas'],
     queryFn: reservaApi.listarTodas,
   });
@@ -39,7 +39,7 @@ export default function ReservasBackoffice() {
       checkinModal?.animalEspecie && checkinModal?.animalPorte && checkinModal?.dataInicio && checkinModal?.dataFim,
   );
 
-  const { data: espacosDisponiveis = [], isLoading: loadingEspacos, isError: erroEspacos } = useQuery({
+  const { data: espacosDisponiveis = [], isLoading: loadingEspacos, isError: erroEspacos } = useQuery<EspacoAlojamento[]>({
     queryKey: [
       'espacos',
       'disponiveis-checkin',
@@ -101,8 +101,8 @@ export default function ReservasBackoffice() {
     onError: () => toast.error('Erro ao registar pagamento.'),
   });
 
-  const ativas = reservas.filter((r) => ['PENDENTE', 'EM_ESTADIA'].includes(r.estado));
-  const historico = reservas.filter((r) => ['CONCLUIDA', 'CANCELADA'].includes(r.estado));
+  const ativas = reservas.filter((r: Reserva) => ['PENDENTE', 'EM_ESTADIA'].includes(r.estado));
+  const historico = reservas.filter((r: Reserva) => ['CONCLUIDA', 'CANCELADA'].includes(r.estado));
   const shown = tab === 'ativas' ? ativas : tab === 'historico' ? historico : reservas;
 
   const columns = [
@@ -127,7 +127,7 @@ export default function ReservasBackoffice() {
     },
   ];
 
-  const espacoSelecionado = espacosDisponiveis.find((e) => String(e.id) === espacoId);
+  const espacoSelecionado = espacosDisponiveis.find((e: EspacoAlojamento) => String(e.id) === espacoId);
 
   return (
       <div className="space-y-6">
@@ -211,7 +211,7 @@ export default function ReservasBackoffice() {
 
                   {!loadingEspacos && espacosDisponiveis.length > 0 && (
                       <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
-                        {espacosDisponiveis.map((espaco) => (
+                        {espacosDisponiveis.map((espaco: EspacoAlojamento) => (
                             <EspacoOption
                                 key={espaco.id}
                                 espaco={espaco}

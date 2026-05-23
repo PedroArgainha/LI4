@@ -1,5 +1,5 @@
 import http from './http';
-import type { Servico, ServicoRequest, AdicionarServicoReservaRequest } from '../types/servico';
+import type { Servico, ServicoRequest, AdicionarServicoReservaRequest, ServicoAgendado } from '../../../../../../../Transferências/hotfix-animais-reservas-checkin (2)/files/frontend/src/types/servico.ts';
 
 export const servicoApi = {
   listarDisponiveis: () =>
@@ -21,11 +21,17 @@ export const servicoApi = {
     http.patch<Servico>(`/servicos/${id}/toggle`).then((r) => r.data),
 
   adicionarAReserva: (reservaId: number, data: AdicionarServicoReservaRequest) =>
-    http.post(`/servicos/reserva/${reservaId}`, data).then((r) => r.data),
+    http.post<void>(`/servicos/reserva/${reservaId}`, data).then((r) => r.data),
 
   removerDaReserva: (reservaId: number, reservaServicoId: number) =>
-    http.delete(`/servicos/reserva/${reservaId}/${reservaServicoId}`).then((r) => r.data),
+    http.delete<void>(`/servicos/reserva/${reservaId}/${reservaServicoId}`).then((r) => r.data),
+
+  doDia: (data: string) =>
+    http.get<ServicoAgendado[]>('/servicos/dia', { params: { data } }).then((r) => r.data),
 
   dodia: (data: string) =>
-    http.get('/servicos/dia', { params: { data } }).then((r) => r.data),
+    http.get<ServicoAgendado[]>('/servicos/dia', { params: { data } }).then((r) => r.data),
+
+  marcarRealizado: (reservaId: number, reservaServicoId: number) =>
+    http.patch<ServicoAgendado>(`/servicos/reserva/${reservaId}/${reservaServicoId}/realizado`).then((r) => r.data),
 };

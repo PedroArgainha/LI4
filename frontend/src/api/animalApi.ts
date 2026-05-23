@@ -1,5 +1,5 @@
 import http from './http';
-import type { Animal, AnimalRequest } from '../types/animal';
+import type { Animal, AnimalRequest } from '../../../../../../../Transferências/hotfix-animais-reservas-checkin (2)/files/frontend/src/types/animal.ts';
 
 export const animalApi = {
   criar: (proprietarioId: number, data: AnimalRequest) =>

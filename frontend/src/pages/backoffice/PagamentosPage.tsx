@@ -16,13 +16,13 @@ export default function PagamentosPage() {
   const [inicio, setInicio] = useState(monthStart);
   const [fim, setFim] = useState(today);
 
-  const { data: pagamentos = [], isLoading } = useQuery({
+  const { data: pagamentos = [], isLoading } = useQuery<Pagamento[]>({
     queryKey: ['pagamentos', 'periodo', inicio, fim],
     queryFn: () => pagamentoApi.porPeriodo(inicio, fim),
     enabled: !!inicio && !!fim,
   });
 
-  const total = pagamentos.reduce((acc, p) => acc + p.valor, 0);
+  const total = pagamentos.reduce((acc: number, p: Pagamento) => acc + p.valor, 0);
 
   const downloadFatura = async (id: number) => {
     try {

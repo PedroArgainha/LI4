@@ -4,8 +4,10 @@ import { pagamentoApi } from '../../api/pagamentoApi';
 import { KpiCard } from '../../components/ui/KpiCard';
 import { EstadoBadge } from '../../components/ui/Badge';
 import { formatDate, formatMoney } from '../../utils/formatters';
-import { useAuthStore } from '../../store/authStore';
+import { useAuthStore } from '../../../../../../../../Transferências/hotfix-animais-reservas-checkin (2)/files/frontend/src/store/authStore.ts';
 import { Loader2 } from 'lucide-react';
+import type { Reserva } from '../../../../../../../../Transferências/hotfix-animais-reservas-checkin (2)/files/frontend/src/types/reserva.ts';
+import type { Pagamento } from '../../types/pagamento';
 
 export default function BackofficeDashboard() {
   const { utilizador } = useAuthStore();
@@ -14,25 +16,25 @@ export default function BackofficeDashboard() {
   const today = new Date().toISOString().split('T')[0];
   const monthStart = today.substring(0, 7) + '-01';
 
-  const { data: ativas = [], isLoading: loadingAtivas } = useQuery({
+  const { data: ativas = [], isLoading: loadingAtivas } = useQuery<Reserva[]>({
     queryKey: ['reservas', 'ativas', today],
     queryFn: () => reservaApi.listarAtivas(today),
   });
 
-  const { data: todas = [] } = useQuery({
+  const { data: todas = [] } = useQuery<Reserva[]>({
     queryKey: ['reservas', 'todas'],
     queryFn: reservaApi.listarTodas,
   });
 
-  const { data: pagamentos = [] } = useQuery({
+  const { data: pagamentos = [] } = useQuery<Pagamento[]>({
     queryKey: ['pagamentos', 'periodo', monthStart, today],
     queryFn: () => pagamentoApi.porPeriodo(monthStart, today),
     enabled: podeVerPagamentos,
   });
 
-  const pendentes = todas.filter((r) => r.estado === 'PENDENTE');
-  const checkins = todas.filter((r) => r.dataInicio === today && r.estado === 'PENDENTE');
-  const receita = podeVerPagamentos ? pagamentos.reduce((acc, p) => acc + p.valor, 0) : 0;
+  const pendentes = todas.filter((r: Reserva) => r.estado === 'PENDENTE');
+  const checkins = todas.filter((r: Reserva) => r.dataInicio === today && r.estado === 'PENDENTE');
+  const receita = podeVerPagamentos ? pagamentos.reduce((acc: number, p: Pagamento) => acc + p.valor, 0) : 0;
 
   return (
       <div className="space-y-8">
@@ -67,7 +69,7 @@ export default function BackofficeDashboard() {
                   <div className="flex justify-center py-8"><Loader2 className="animate-spin text-[#775A19]" size={20} /></div>
               ) : ativas.length === 0 ? (
                   <p className="text-sm text-[#74777D] text-center py-8">Nenhum animal em estadia</p>
-              ) : ativas.map((r) => (
+              ) : ativas.map((r: Reserva) => (
                   <div key={r.id} className="px-5 py-3 flex items-center justify-between hover:bg-[#F3F4F5]">
                     <div>
                       <p className="text-sm font-medium text-[#041525]">{r.animalNome ?? `Animal #${r.animalId}`}</p>
@@ -88,7 +90,7 @@ export default function BackofficeDashboard() {
             <div className="divide-y divide-[#E7E8E9] max-h-72 overflow-y-auto">
               {pendentes.length === 0 ? (
                   <p className="text-sm text-[#74777D] text-center py-8">Sem reservas pendentes</p>
-              ) : pendentes.map((r) => (
+              ) : pendentes.map((r: Reserva) => (
                   <div key={r.id} className="px-5 py-3 flex items-center justify-between hover:bg-[#F3F4F5]">
                     <div>
                       <p className="text-sm font-medium text-[#041525]">{r.animalNome ?? `Animal #${r.animalId}`}</p>

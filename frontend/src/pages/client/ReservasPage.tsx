@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../../store/authStore';
 import { reservaApi } from '../../api/reservaApi';
@@ -7,12 +7,13 @@ import { servicoApi } from '../../api/servicoApi';
 import { Modal } from '../../components/ui/Modal';
 import { Tabs } from '../../components/ui/Tabs';
 import { EstadoBadge } from '../../components/ui/Badge';
-import { Toggle } from '../../components/ui/Toggle';
 import { formatDate, formatMoney } from '../../utils/formatters';
 import type { ReservaRequest } from '../../types/reserva';
-import { Plus, Calendar, Loader2, X } from 'lucide-react';
+import type { AnimalRequest, Especie, Porte } from '../../types/animal';
+import { Plus, Loader2, X, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { DatePicker } from '../../components/ui/DatePicker';
+
 export default function ReservasPage() {
   const { utilizador } = useAuthStore();
   const qc = useQueryClient();
@@ -39,6 +40,16 @@ export default function ReservasPage() {
     enabled: modalOpen && step === 3,
   });
 
+  const [novoAnimalAberto, setNovoAnimalAberto] = useState(false);
+  const [novoAnimal, setNovoAnimal] = useState<AnimalRequest>({
+    nome: '', especie: 'CAO', porte: 'PEQUENO_MEDIO',
+    raca: '', dataNascimento: '', observacoes: '',
+  });
+
+  const setNA = (k: keyof AnimalRequest) =>
+      (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
+          setNovoAnimal((f) => ({ ...f, [k]: e.target.value }));
+
   const selectedAnimal = animais.find((a) => a.id === form.animalId);
 
   const { data: disponibilidade, isFetching: loadingDisponibilidade } = useQuery({
@@ -47,6 +58,14 @@ export default function ReservasPage() {
     enabled: modalOpen && step === 2 && !!selectedAnimal && !!form.dataInicio && !!form.dataFim,
     retry: false,
   });
+
+  // Manter a dataExecucao dos serviços selecionados alinhada com a data de início da reserva
+  useEffect(() => {
+    if (!form.dataInicio) return;
+    setSelectedServicos((prev) =>
+        prev.map((s) => ({ ...s, dataExecucao: form.dataInicio }))
+    );
+  }, [form.dataInicio]);
 
   const podeAvancarDatas = !!form.dataInicio && !!form.dataFim && !loadingDisponibilidade && !!disponibilidade?.disponivel;
 
@@ -73,7 +92,26 @@ export default function ReservasPage() {
     onError: () => toast.error('Não foi possível cancelar.'),
   });
 
-  const resetModal = () => { setStep(1); setForm({ animalId: 0, dataInicio: '', dataFim: '' }); setSelectedServicos([]); };
+  const criarAnimalMutation = useMutation({
+    mutationFn: (data: AnimalRequest) => animalApi.criar(utilizador!.id, data),
+    onSuccess: (animalCriado) => {
+      toast.success('Animal registado!');
+      qc.invalidateQueries({ queryKey: ['animais', 'proprietario', utilizador!.id] });
+      // selecciona o novo animal automaticamente e fecha o sub-formulário
+      setForm((f) => ({ ...f, animalId: animalCriado.id }));
+      setNovoAnimalAberto(false);
+      setNovoAnimal({ nome: '', especie: 'CAO', porte: 'PEQUENO_MEDIO', raca: '', dataNascimento: '', observacoes: '' });
+    },
+    onError: () => toast.error('Erro ao registar animal.'),
+  });
+
+  const handleCriarAnimal = (e: React.FormEvent) => {
+    e.preventDefault();
+    const porte: Porte = novoAnimal.especie === 'GATO' ? 'NAO_APLICAVEL' : novoAnimal.porte;
+    criarAnimalMutation.mutate({ ...novoAnimal, porte });
+  };
+
+  const resetModal = () => { setStep(1); setForm({ animalId: 0, dataInicio: '', dataFim: '' }); setSelectedServicos([]);  setNovoAnimalAberto(false); };
 
   const ativas = reservas.filter((r) => ['PENDENTE', 'EM_ESTADIA'].includes(r.estado));
   const historico = reservas.filter((r) => ['CONCLUIDA', 'CANCELADA'].includes(r.estado));
@@ -88,35 +126,42 @@ export default function ReservasPage() {
   };
 
   return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="font-noto-serif text-2xl font-bold text-[#041525]">As Minhas Reservas</h1>
-            <p className="text-sm text-[#44474C] mt-1">{ativas.length} reserva{ativas.length !== 1 ? 's' : ''} ativa{ativas.length !== 1 ? 's' : ''}</p>
-          </div>
-          <button onClick={() => { resetModal(); setModalOpen(true); }} className="flex items-center gap-2 bg-[#775A19] text-white text-xs font-bold uppercase tracking-widest px-5 py-2.5 hover:bg-[#5d4201] transition-colors">
-            <Plus size={14} /> Nova Reserva
-          </button>
+    <div>
+      <div className="flex items-end justify-between gap-4 border-b border-[#E7E8E9] pb-5">
+        <div>
+          <h1 className="font-noto-serif text-2xl text-[#041525]">As Minhas Reservas</h1>
+          <p className="text-sm text-[#74777D] mt-1">
+            {ativas.length === 0
+                ? 'Sem reservas ativas'
+                : `${ativas.length} reserva${ativas.length !== 1 ? 's' : ''} ativa${ativas.length !== 1 ? 's' : ''}`}
+          </p>
         </div>
+        <button
+            onClick={() => { resetModal(); setModalOpen(true); }}
+            className="inline-flex items-center gap-2 bg-[#041525] text-white text-sm font-medium px-4 py-2.5 hover:bg-slate-800 transition-colors rounded-sm"
+        >
+          <Plus size={16} /> Nova reserva
+        </button>
+      </div>
 
-        <Tabs
-            tabs={[
-              { id: 'ativas',   label: 'Ativas',   count: ativas.length },
-              { id: 'historico', label: 'Histórico', count: historico.length },
-            ]}
-            active={tab}
-            onChange={setTab}
-        />
+      <Tabs
+        tabs={[
+          { id: 'ativas',   label: 'Ativas',   count: ativas.length },
+          { id: 'historico', label: 'Histórico', count: historico.length },
+        ]}
+        active={tab}
+        onChange={setTab}
+      />
 
-        {isLoading ? (
-            <div className="flex justify-center py-16"><Loader2 className="animate-spin text-[#775A19]" size={28} /></div>
-        ) : shown.length === 0 ? (
-            <div className="border border-dashed border-[#C4C6CC] p-12 text-center bg-white">
-              <Calendar size={40} className="text-[#C4C6CC] mx-auto mb-3" />
-              <p className="text-[#44474C] font-medium">Sem reservas {tab === 'ativas' ? 'ativas' : 'no histórico'}</p>
-            </div>
-        ) : (
-            <div className="space-y-3">
+      {isLoading ? (
+        <div className="flex justify-center py-16"><Loader2 className="animate-spin text-[#775A19]" size={28} /></div>
+      ) : shown.length === 0 ? (
+        <div className="border border-dashed border-[#C4C6CC] p-12 text-center bg-white">
+          <Calendar size={40} className="text-[#C4C6CC] mx-auto mb-3" />
+          <p className="text-[#44474C] font-medium">Sem reservas {tab === 'ativas' ? 'ativas' : 'no histórico'}</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
               {shown.map((r) => (
                   <div key={r.id} className="bg-white border border-[#C4C6CC] p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-[#044747C] hover:shadow-sm transition-all">
                     <div className="flex items-center gap-4">
@@ -173,28 +218,150 @@ export default function ReservasPage() {
           {/* Step 1: Escolher animal */}
           {step === 1 && (
               <div className="space-y-3">
-                <p className="text-sm text-[#44474C] mb-4">Selecione o animal para a reserva:</p>
-                {animais.map((a) => (
-                    <div
-                        key={a.id}
-                        onClick={() => setForm((f) => ({ ...f, animalId: a.id }))}
-                        className={`flex items-center gap-3 p-4 border cursor-pointer transition-all ${form.animalId === a.id ? 'border-[#775A19] bg-[#FDD587]/10' : 'border-[#C4C6CC] hover:border-[#775A19]/50'}`}
-                    >
-                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${form.animalId === a.id ? 'border-[#775A19]' : 'border-[#C4C6CC]'}`}>
-                        {form.animalId === a.id && <div className="w-2.5 h-2.5 rounded-full bg-[#775A19]" />}
-                      </div>
-                      <p className="font-medium text-[#041525]">{a.nome}</p>
-                      <span className="text-xs text-[#74777D]">{a.especie === 'CAO' ? 'Cão' : 'Gato'} · {a.raca}</span>
-                    </div>
-                ))}
-                {animais.length === 0 && <p className="text-sm text-[#74777D] text-center py-4">Registe um animal primeiro.</p>}
-                <div className="flex justify-end pt-2">
-                  <button onClick={() => step === 1 && form.animalId && setStep(2)} disabled={!form.animalId} className="bg-[#041525] text-white px-6 py-2.5 text-sm font-bold uppercase tracking-widest hover:bg-slate-800 disabled:opacity-40 transition-colors">
-                    Continuar
-                  </button>
-                </div>
-              </div>
-          )}
+                    {!novoAnimalAberto && (
+                        <>
+                          <p className="text-sm text-[#44474C] mb-2">
+                            {animais.length === 0
+                                ? 'Ainda não tem nenhum animal registado. Registe um para continuar:'
+                                : 'Selecione o animal para a reserva:'}
+                          </p>
+
+                          {animais.map((a) => (
+                              <div
+                                  key={a.id}
+                                  onClick={() => setForm((f) => ({ ...f, animalId: a.id }))}
+                                  className={`flex items-center gap-3 p-4 border cursor-pointer transition-all ${form.animalId === a.id ? 'border-[#775A19] bg-[#FDD587]/10' : 'border-[#C4C6CC] hover:border-[#775A19]/50'}`}
+                              >
+                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${form.animalId === a.id ? 'border-[#775A19]' : 'border-[#C4C6CC]'}`}>
+                                  {form.animalId === a.id && <div className="w-2.5 h-2.5 rounded-full bg-[#775A19]" />}
+                                </div>
+                                <p className="font-medium text-[#041525]">{a.nome}</p>
+                                <span className="text-xs text-[#74777D]">{a.especie === 'CAO' ? 'Cão' : 'Gato'}{a.raca ? ` · ${a.raca}` : ''}</span>
+                              </div>
+                          ))}
+
+                          <button
+                              type="button"
+                              onClick={() => setNovoAnimalAberto(true)}
+                              className="w-full flex items-center justify-center gap-2 border border-dashed border-[#C4C6CC] hover:border-[#775A19] hover:bg-[#F9F5EA] text-sm text-[#44474C] hover:text-[#775A19] py-3 transition-colors"
+                          >
+                            <Plus size={14} /> Registar novo animal
+                          </button>
+
+                          <div className="flex justify-end pt-2">
+                            <button
+                                onClick={() => form.animalId && setStep(2)}
+                                disabled={!form.animalId}
+                                className="bg-[#041525] text-white px-6 py-2.5 text-sm font-bold uppercase tracking-widest hover:bg-slate-800 disabled:opacity-40 transition-colors"
+                            >
+                              Continuar
+                            </button>
+                          </div>
+                        </>
+                    )}
+
+                    {novoAnimalAberto && (
+                        <form onSubmit={handleCriarAnimal} className="space-y-4">
+                          <button
+                              type="button"
+                              onClick={() => setNovoAnimalAberto(false)}
+                              className="inline-flex items-center gap-1.5 text-xs text-[#44474C] hover:text-[#041525] transition-colors"
+                          >
+                            <ArrowLeft size={12} /> Voltar à lista
+                          </button>
+
+                          <div>
+                            <label className="block text-xs font-bold uppercase tracking-wider text-[#44474C] mb-1.5">Nome *</label>
+                            <input
+                                className="w-full border border-[#C4C6CC] px-3 py-2.5 text-sm focus:outline-none focus:border-[#775A19]"
+                                value={novoAnimal.nome}
+                                onChange={setNA('nome')}
+                                required
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-xs font-bold uppercase tracking-wider text-[#44474C] mb-1.5">Espécie *</label>
+                              <select
+                                  className="w-full border border-[#C4C6CC] px-3 py-2.5 text-sm focus:outline-none focus:border-[#775A19] bg-white"
+                                  value={novoAnimal.especie}
+                                  onChange={(e) => setNovoAnimal((f) => ({
+                                    ...f,
+                                    especie: e.target.value as Especie,
+                                    porte: e.target.value === 'GATO' ? 'NAO_APLICAVEL' : (f.porte === 'NAO_APLICAVEL' ? 'PEQUENO_MEDIO' : f.porte),
+                                  }))}
+                              >
+                                <option value="CAO">Cão</option>
+                                <option value="GATO">Gato</option>
+                              </select>
+                            </div>
+                            {novoAnimal.especie === 'CAO' && (
+                                <div>
+                                  <label className="block text-xs font-bold uppercase tracking-wider text-[#44474C] mb-1.5">Porte *</label>
+                                  <select
+                                      className="w-full border border-[#C4C6CC] px-3 py-2.5 text-sm focus:outline-none focus:border-[#775A19] bg-white"
+                                      value={novoAnimal.porte}
+                                      onChange={setNA('porte')}
+                                  >
+                                    <option value="PEQUENO_MEDIO">Pequeno/Médio</option>
+                                    <option value="GRANDE">Grande</option>
+                                  </select>
+                                </div>
+                            )}
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-bold uppercase tracking-wider text-[#44474C] mb-1.5">Raça</label>
+                            <input
+                                className="w-full border border-[#C4C6CC] px-3 py-2.5 text-sm focus:outline-none focus:border-[#775A19]"
+                                value={novoAnimal.raca}
+                                onChange={setNA('raca')}
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-bold uppercase tracking-wider text-[#44474C] mb-1.5">Data de Nascimento</label>
+                            <input
+                                type="date"
+                                className="w-full border border-[#C4C6CC] px-3 py-2.5 text-sm focus:outline-none focus:border-[#775A19]"
+                                value={novoAnimal.dataNascimento}
+                                onChange={setNA('dataNascimento')}
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-bold uppercase tracking-wider text-[#44474C] mb-1.5">Observações</label>
+                            <textarea
+                                rows={3}
+                                className="w-full border border-[#C4C6CC] px-3 py-2.5 text-sm focus:outline-none focus:border-[#775A19] resize-none"
+                                value={novoAnimal.observacoes ?? ''}
+                                onChange={setNA('observacoes')}
+                                placeholder="Alergias, medicação, comportamento, comida preferida, rotinas..."
+                            />
+                          </div>
+
+                          <div className="flex gap-3 pt-2">
+                            <button
+                                type="button"
+                                onClick={() => setNovoAnimalAberto(false)}
+                                className="flex-1 border border-[#C4C6CC] py-2.5 text-sm font-medium text-[#44474C] hover:bg-[#F3F4F5] transition-colors"
+                            >
+                              Cancelar
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={criarAnimalMutation.isPending}
+                                className="flex-1 bg-[#775A19] text-white py-2.5 text-sm font-bold uppercase tracking-widest hover:bg-[#5d4201] disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
+                            >
+                              {criarAnimalMutation.isPending && <Loader2 size={14} className="animate-spin" />}
+                              Registar e continuar
+                            </button>
+                          </div>
+                        </form>
+                    )}
+                  </div>
+              )}
 
           {/* Step 2: Datas */}
           {step === 2 && (
@@ -237,21 +404,30 @@ export default function ReservasPage() {
               <div className="space-y-4">
                 <p className="text-sm text-[#44474C] mb-4">Selecione serviços adicionais (opcional):</p>
                 <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
-                  {servicos.map((s) => (
-                      <div key={s.id} className="flex items-center justify-between">
-                        <Toggle
-                            checked={!!selectedServicos.find(x => x.servicoId === s.id)}
-                            onChange={() => toggleServico(s.id, form.dataInicio)}
-                            label={s.nome}
-                            description={s.descricao}
-                            icon="spa"
-                        />
-                        <p className="font-bold text-[#775A19] text-sm ml-4">{formatMoney(s.preco)}</p>
-                      </div>
-                  ))}
+                    {servicos.map((s) => (
+                        <label
+                            key={s.id}
+                            className="flex items-start gap-3 border border-[#E7E8E9] hover:border-[#775A19]/40 p-3 cursor-pointer transition-colors"
+                        >
+                          <input
+                              type="checkbox"
+                              className="mt-1 accent-[#775A19]"
+                              checked={!!selectedServicos.find((x) => x.servicoId === s.id)}
+                              onChange={() => toggleServico(s.id, form.dataInicio)}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-3">
+                              <p className="font-medium text-[#041525] text-sm">{s.nome}</p>
+                              <p className="font-bold text-[#775A19] text-sm whitespace-nowrap">{formatMoney(s.preco)}</p>
+                            </div>
+                            {s.descricao && <p className="text-xs text-[#74777D] mt-0.5 line-clamp-2">{s.descricao}</p>}
+                          </div>
+                        </label>
+                    ))}
+
                 </div>
                 {selectedServicos.length > 0 && (
-                    <div className="bg-[#F3F4F5] p-3 text-sm font-medium text-[#044747C]">
+                    <div className="bg-[#F3F4F5] p-3 text-sm font-medium text-[#44474C]">\
                       {selectedServicos.length} serviço{selectedServicos.length !== 1 ? 's' : ''} selecionado{selectedServicos.length !== 1 ? 's' : ''}
                     </div>
                 )}

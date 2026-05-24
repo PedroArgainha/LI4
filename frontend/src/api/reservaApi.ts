@@ -1,6 +1,6 @@
 import http from './http';
-import type { Reserva, ReservaRequest, DisponibilidadeResponse } from '../../../../../../../Transferências/hotfix-animais-reservas-checkin (2)/files/frontend/src/types/reserva.ts';
-import type { Especie, Porte } from '../../../../../../../Transferências/hotfix-animais-reservas-checkin (2)/files/frontend/src/types/animal.ts';
+import type { Reserva, ReservaRequest, DisponibilidadeResponse } from '../types/reserva';
+import type { Especie, Porte } from '../types/animal';
 
 export const reservaApi = {
   disponibilidade: (especie: Especie, porte: Porte, dataInicio: string, dataFim: string) =>

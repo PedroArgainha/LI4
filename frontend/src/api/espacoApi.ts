@@ -1,6 +1,6 @@
 import http from './http';
-import type { Especie, Porte } from '../../../../../../../Transferências/hotfix-animais-reservas-checkin (2)/files/frontend/src/types/animal.ts';
-import type { EspacoAlojamento, EspacoRequest, EstadoEspaco } from '../../../../../../../Transferências/hotfix-animais-reservas-checkin (2)/files/frontend/src/types/espaco.ts';
+import type { Especie, Porte } from '../types/animal';
+import type { EspacoAlojamento, EspacoRequest, EstadoEspaco } from '../types/espaco';
 
 export const espacoApi = {
   listarTodos: () =>

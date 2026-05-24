@@ -7,7 +7,7 @@ import { Modal } from '../../components/ui/Modal';
 import { EspecieBadge, PorteBadge } from '../../components/ui/Badge';
 import { Avatar } from '../../components/ui/Avatar';
 import type { Animal, AnimalRequest, Porte, Especie } from '../../types/animal';
-import { Plus, Pencil, Loader2 } from 'lucide-react';
+import { Plus, Pencil, Loader2, PawPrint } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const EMPTY: AnimalRequest = {
@@ -62,14 +62,21 @@ export default function AnimaisPage() {
   const loading = criarMutation.isPending || editarMutation.isPending;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div>
+      <div className="flex items-end justify-between gap-4 border-b border-[#E7E8E9] pb-5">
         <div>
-          <h1 className="font-noto-serif text-2xl font-bold text-[#041525]">Os Meus Animais</h1>
-          <p className="text-sm text-[#44474C] mt-1">{animais.length} animal{animais.length !== 1 ? 'is' : ''} registado{animais.length !== 1 ? 's' : ''}</p>
+          <h1 className="font-noto-serif text-2xl text-[#041525]">Os Meus Animais</h1>
+          <p className="text-sm text-[#74777D] mt-1">
+            {animais.length === 0
+                ? 'Sem animais registados'
+                : `${animais.length} animal${animais.length !== 1 ? 'is' : ''} registado${animais.length !== 1 ? 's' : ''}`}
+          </p>
         </div>
-        <button onClick={openNew} className="flex items-center gap-2 bg-[#775A19] text-white text-xs font-bold uppercase tracking-widest px-5 py-2.5 hover:bg-[#5d4201] transition-colors">
-          <Plus size={14} /> Novo Animal
+        <button
+            onClick={openNew}
+            className="inline-flex items-center gap-2 bg-[#041525] text-white text-sm font-medium px-4 py-2.5 hover:bg-slate-800 transition-colors rounded-sm"
+        >
+          <Plus size={16} /> Novo animal
         </button>
       </div>
 
@@ -77,8 +84,8 @@ export default function AnimaisPage() {
         <div className="flex justify-center py-16"><Loader2 className="animate-spin text-[#775A19]" size={28} /></div>
       ) : animais.length === 0 ? (
         <div className="border border-dashed border-[#C4C6CC] p-12 text-center bg-white">
-          <span className="material-symbols-outlined text-5xl text-[#C4C6CC] block mb-3" style={{ fontVariationSettings: '"FILL" 0' }}>pets</span>
-          <p className="text-[#44474C] font-medium mb-1">Ainda não tem animais registados</p>
+          <PawPrint className="mx-auto text-[#C4C6CC] mb-3" size={48} strokeWidth={1.5} />
+            <p className="text-[#44474C] font-medium mb-1">Ainda não tem animais registado</p>
           <p className="text-sm text-[#74777D] mb-5">Registe o seu primeiro animal para poder fazer reservas.</p>
           <button onClick={openNew} className="bg-[#775A19] text-white text-xs font-bold uppercase tracking-widest px-6 py-2.5 hover:bg-[#5d4201] transition-colors">
             Registar animal
@@ -104,7 +111,11 @@ export default function AnimaisPage() {
               <Select
                 label="Espécie *"
                 value={form.especie}
-                onChange={(v) => setForm(f => ({ ...f, especie: v as Especie }))}
+                onChange={(v) => setForm(f => ({
+                  ...f,
+                  especie: v as Especie,
+                  porte: v === 'GATO' ? 'NAO_APLICAVEL' : (f.porte === 'NAO_APLICAVEL' ? 'PEQUENO_MEDIO' : f.porte),
+                }))}
                 options={[
                   { value: 'CAO',  label: 'Cão',  icon: 'pets' },
                   { value: 'GATO', label: 'Gato', icon: 'cruelty_free' },
@@ -131,7 +142,7 @@ export default function AnimaisPage() {
           </div>
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-[#44474C] mb-1.5">Observações</label>
-            <textarea rows={3} className="w-full border border-[#C4C6CC] px-3 py-2.5 text-sm focus:outline-none focus:border-[#775A19] resize-none" value={form.observacoes} onChange={set('observacoes')} placeholder="Alergias, medicação, comportamento..." />
+            <textarea rows={3} className="w-full border border-[#C4C6CC] px-3 py-2.5 text-sm focus:outline-none focus:border-[#775A19] resize-none" value={form.observacoes ?? ''} onChange={set('observacoes')} placeholder="Alergias, medicação, comportamento, comida preferida, rotinas..." />
           </div>
           <div className="flex gap-3 pt-2">
             <button type="button" onClick={closeModal} className="flex-1 border border-[#C4C6CC] py-2.5 text-sm font-medium text-[#44474C] hover:bg-[#F3F4F5] transition-colors">Cancelar</button>

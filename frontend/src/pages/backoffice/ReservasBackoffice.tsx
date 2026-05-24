@@ -9,9 +9,9 @@ import { Modal } from '../../components/ui/Modal';
 import { Tabs } from '../../components/ui/Tabs';
 import { Breadcrumbs } from '../../components/ui/Breadcrumbs';
 import { formatDate, formatMoney } from '../../utils/formatters';
-import type { Reserva } from '../../../../../../../../Transferências/hotfix-animais-reservas-checkin (2)/files/frontend/src/types/reserva.ts';
+import type { Reserva } from '../../types/reserva';
 import type { MetodoPagamento } from '../../types/pagamento';
-import type { EspacoAlojamento } from '../../../../../../../../Transferências/hotfix-animais-reservas-checkin (2)/files/frontend/src/types/espaco.ts';
+import type { EspacoAlojamento } from '../../types/espaco';
 import { Loader2, Eye, LogIn, LogOut, Ban, CreditCard, MapPin } from 'lucide-react';
 import toast from 'react-hot-toast';
 

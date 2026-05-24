@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authApi } from '../../api/authApi';
-import { PawPrint, Loader2 } from 'lucide-react';
+import { Loader2, ArrowLeft, PawPrint } from 'lucide-react';
 
 interface RegistoForm {
   nome: string;
@@ -77,6 +77,12 @@ export default function RegistarPage() {
   return (
       <div className="min-h-screen bg-gradient-to-br from-brand-50 to-white flex items-center justify-center p-4">
         <div className="w-full max-w-sm">
+          tsx<Link
+            to="/"
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-gray-900 transition-colors mb-6"
+        >
+          <ArrowLeft size={14} /> Voltar à página inicial
+        </Link>
           <div className="text-center mb-8">
             <Link to="/" className="inline-flex items-center gap-2 mb-6">
               <div className="bg-brand-500 text-white p-2 rounded-xl">

@@ -4,9 +4,9 @@ import { pagamentoApi } from '../../api/pagamentoApi';
 import { KpiCard } from '../../components/ui/KpiCard';
 import { EstadoBadge } from '../../components/ui/Badge';
 import { formatDate, formatMoney } from '../../utils/formatters';
-import { useAuthStore } from '../../../../../../../../Transferências/hotfix-animais-reservas-checkin (2)/files/frontend/src/store/authStore.ts';
+import { useAuthStore } from '../../store/authStore';
 import { Loader2 } from 'lucide-react';
-import type { Reserva } from '../../../../../../../../Transferências/hotfix-animais-reservas-checkin (2)/files/frontend/src/types/reserva.ts';
+import type { Reserva } from '../../types/reserva';
 import type { Pagamento } from '../../types/pagamento';
 
 export default function BackofficeDashboard() {

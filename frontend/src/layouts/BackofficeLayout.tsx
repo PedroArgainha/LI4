@@ -1,5 +1,6 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../../../../../../../Transferências/hotfix-animais-reservas-checkin (2)/files/frontend/src/store/authStore.ts';
+import { useAuthStore } from '../store/authStore';
+
 import {
   PawPrint, Home, Calendar, Dog, CreditCard,
   BarChart2, Settings, LogOut, Users, Wrench,

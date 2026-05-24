@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { authApi } from '../../api/authApi';
 import { isBackoffice } from '../../utils/roles';
-import { Loader2, Mail, Lock, ArrowRight } from 'lucide-react';
+import { Loader2, Mail, Lock, ArrowRight, ArrowLeft } from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -64,6 +64,12 @@ export default function LoginPage() {
 
           {/* card */}
           <div className="relative z-10 w-full max-w-md bg-white shadow-xl px-10 py-12">
+            <Link
+                to="/"
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-slate-900 transition-colors mb-6"
+            >
+              <ArrowLeft size={14} /> Voltar à página inicial
+            </Link>
             <div className="text-center mb-8">
               <h1 className="font-noto-serif text-3xl font-bold text-slate-900 mb-2">Bem-vindo</h1>
               <p className="text-sm text-slate-500">Aceda à sua conta Patudos &amp; Companhia</p>

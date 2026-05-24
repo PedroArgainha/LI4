@@ -7,8 +7,8 @@ import { DataTable } from '../../components/ui/DataTable';
 import { EstadoBadge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
 import { formatDate } from '../../utils/formatters';
-import type { Reserva } from '../../../../../../../../Transferências/hotfix-animais-reservas-checkin (2)/files/frontend/src/types/reserva.ts';
-import type { EspacoAlojamento } from '../../../../../../../../Transferências/hotfix-animais-reservas-checkin (2)/files/frontend/src/types/espaco.ts';
+import type { Reserva } from '../../types/reserva';
+import type { EspacoAlojamento } from '../../types/espaco';
 import { LogIn, LogOut, Loader2, MapPin } from 'lucide-react';
 import toast from 'react-hot-toast';
 

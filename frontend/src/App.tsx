@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 
+
 // Layouts
 import PublicLayout from './layouts/PublicLayout';
 import ClientLayout from './layouts/ClientLayout';
@@ -19,6 +20,7 @@ import ContactoPage from './pages/public/ContactoPage';
 import LoginPage from './pages/auth/LoginPage';
 import RegistarPage from './pages/auth/RegistarPage';
 
+
 // Client portal
 import PortalDashboard from './pages/client/PortalDashboard';
 import AnimaisPage from './pages/client/AnimaisPage';
@@ -35,6 +37,8 @@ import UtilizadoresPage from './pages/backoffice/UtilizadoresPage';
 import EspacosPage from './pages/backoffice/EspacosPage';
 import ServicosPageBO from './pages/backoffice/ServicosPage';
 import RelatoriosPage from './pages/backoffice/RelatoriosPage';
+import CheckInPage from './pages/backoffice/CheckInPage';
+
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
@@ -80,6 +84,14 @@ export default function App() {
               </ProtectedRoute>
             }
           >
+          <Route
+              path="checkin"
+              element={
+                  <ProtectedRoute allowedRoles={['FUNC_ADMINISTRATIVO', 'ADMIN']}>
+                      <CheckInPage />
+                  </ProtectedRoute>
+              }
+          />
             <Route index element={<BackofficeDashboard />} />
             <Route path="reservas" element={<ReservasBackoffice />} />
             <Route path="animais" element={<AnimaisBackoffice />} />

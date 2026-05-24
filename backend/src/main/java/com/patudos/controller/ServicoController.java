@@ -26,8 +26,14 @@ public class ServicoController {
 
     // Público
     @GetMapping("/disponiveis")
-    public ResponseEntity<List<ServicoResponse>> listarDisponiveis() {
-        return ResponseEntity.ok(gestaoServicos.listarDisponiveis());
+    public ResponseEntity<List<ServicoResponse>> listarDisponiveis(
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data) {
+        return ResponseEntity.ok(
+                data == null
+                        ? gestaoServicos.listarDisponiveis()
+                        : gestaoServicos.listarDisponiveis(data)
+        );
     }
 
     @GetMapping("/{id}")
@@ -61,6 +67,31 @@ public class ServicoController {
     @PreAuthorize("hasAnyRole('DIRECAO', 'ADMIN')")
     public ResponseEntity<Void> toggleDisponibilidade(@PathVariable Long id) {
         gestaoServicos.toggleDisponibilidade(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/indisponibilidades")
+    @PreAuthorize("hasAnyRole('DIRECAO', 'ADMIN')")
+    public ResponseEntity<Void> bloquearData(
+            @PathVariable Long id,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data) {
+        gestaoServicos.bloquearData(id, data);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @DeleteMapping("/{id}/indisponibilidades")
+    @PreAuthorize("hasAnyRole('DIRECAO', 'ADMIN')")
+    public ResponseEntity<Void> desbloquearData(
+            @PathVariable Long id,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data) {
+        gestaoServicos.desbloquearData(id, data);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('DIRECAO', 'ADMIN')")
+    public ResponseEntity<Void> remover(@PathVariable Long id) {
+        gestaoServicos.removerServico(id);
         return ResponseEntity.noContent().build();
     }
 

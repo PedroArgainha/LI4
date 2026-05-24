@@ -3,9 +3,9 @@ import { servicoApi } from '../../api/servicoApi';
 import { formatMoney } from '../../utils/formatters';
 import { Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
+import type { Servico } from '../../types/servico';
 export default function ServicosPage() {
-  const { data: servicos, isLoading } = useQuery({
+  const { data: servicos, isLoading } = useQuery<Servico[]>({
     queryKey: ['servicos', 'disponiveis'],
     queryFn: servicoApi.listarDisponiveis,
   });
@@ -25,7 +25,7 @@ export default function ServicosPage() {
         </div>
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-          {servicos?.map((s) => (
+          {servicos?.map((s: Servico) => (
             <div key={s.id} className="card hover:border-brand-200 hover:shadow-md transition-all">
               <h3 className="font-semibold text-gray-900 mb-1">{s.nome}</h3>
               <p className="text-sm text-gray-500 mb-4">{s.descricao}</p>

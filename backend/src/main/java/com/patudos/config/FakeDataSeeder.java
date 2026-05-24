@@ -33,7 +33,7 @@ import java.time.LocalDateTime;
 - pagamentos fake
  */
 
-@Component
+// @Component
 @Order(2)
 public class FakeDataSeeder implements CommandLineRunner {
 

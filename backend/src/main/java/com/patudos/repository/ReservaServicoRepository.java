@@ -26,4 +26,7 @@ public interface ReservaServicoRepository extends JpaRepository<ReservaServico, 
             @Param("data") LocalDate data,
             @Param("estadoCancelado") EstadoReserva estadoCancelado
     );
+
+
+    void deleteByServicoId(Long servicoId);
 }

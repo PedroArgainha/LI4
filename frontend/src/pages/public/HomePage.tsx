@@ -3,9 +3,10 @@ import { useQuery } from '@tanstack/react-query';
 import { servicoApi } from '../../api/servicoApi';
 import { formatMoney } from '../../utils/formatters';
 import { ArrowRight } from 'lucide-react';
+import type { Servico } from '../../types/servico';
 
 export default function HomePage() {
-  const { data: servicos } = useQuery({
+  const { data: servicos } = useQuery<Servico[]>({
     queryKey: ['servicos', 'disponiveis'],
     queryFn: servicoApi.listarDisponiveis,
   });
@@ -127,7 +128,7 @@ export default function HomePage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {servicos && servicos.length > 0
-              ? servicos.slice(0, 4).map((s) => (
+              ? servicos.slice(0, 4).map((s: Servico) => (
                   <ServiceCard
                     key={s.id}
                     icon="pets"

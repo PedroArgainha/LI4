@@ -94,18 +94,18 @@ export default function PortalDashboard() {
   const id = utilizador!.id;
   const primeiroNome = utilizador?.nome?.split(' ')[0] ?? 'Cliente';
 
-  const { data: reservas = [] } = useQuery({
+  const { data: reservas = [] } = useQuery<Reserva[]>({
     queryKey: ['reservas', 'proprietario', id],
     queryFn: () => reservaApi.listarPorProprietario(id),
   });
 
-  const { data: animais = [] } = useQuery({
+  const { data: animais = [] } = useQuery<Animal[]>({
     queryKey: ['animais', 'proprietario', id],
     queryFn: () => animalApi.listarPorProprietario(id),
   });
 
   const proximasEstadias = reservas.filter(
-      (r) => r.estado === 'PENDENTE' || r.estado === 'EM_ESTADIA'
+      (r: Reserva) => r.estado === 'PENDENTE' || r.estado === 'EM_ESTADIA'
   );
 
   const semAnimais = animais.length === 0;
@@ -186,7 +186,7 @@ export default function PortalDashboard() {
               </div>
           ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {proximasEstadias.map((r) => (
+                {proximasEstadias.map((r: Reserva) => (
                     <ReservaCard key={r.id} reserva={r} />
                 ))}
               </div>
@@ -206,7 +206,7 @@ export default function PortalDashboard() {
                 </button>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
-                {animais.slice(0, 5).map((animal) => (
+                {animais.slice(0, 5).map((animal: Animal) => (
                     <div key={animal.id} onClick={() => navigate('/portal/animais')}>
                       <AnimalCard animal={animal} />
                     </div>

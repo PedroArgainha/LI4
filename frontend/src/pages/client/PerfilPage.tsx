@@ -5,7 +5,7 @@ import { useAuthStore } from '../../store/authStore';
 import { utilizadorApi } from '../../api/utilizadorApi';
 import { Avatar } from '../../components/ui/Avatar';
 import { ROLE_LABELS } from '../../utils/roles';
-import type { EditarPerfilRequest } from '../../types/auth';
+import type { EditarPerfilRequest, Utilizador } from '../../types/auth';
 
 type FormState = {
   nome: string;
@@ -46,18 +46,18 @@ export default function PerfilPage() {
     return form.nome.trim() !== utilizador.nome || form.telefone.trim() !== (utilizador.telefone ?? '');
   }, [form.nome, form.telefone, utilizador]);
 
-  const mutation = useMutation({
+  const mutation = useMutation<Utilizador, unknown, EditarPerfilRequest>({
     mutationFn: (data: EditarPerfilRequest) => {
       if (!utilizador) throw new Error('Sessão inválida.');
       return utilizadorApi.editarPerfil(utilizador.id, data);
     },
-    onSuccess: (updatedUser) => {
+    onSuccess: (updatedUser: Utilizador) => {
       atualizarUtilizador(updatedUser);
       setIsEditing(false);
       setErrorMessage(null);
       setSuccessMessage('Perfil atualizado com sucesso.');
     },
-    onError: (error) => {
+    onError: (error: unknown) => {
       setSuccessMessage(null);
       setErrorMessage(getErrorMessage(error));
     },

@@ -2,9 +2,11 @@ import type { Especie, Porte } from './animal';
 
 export type EstadoReserva =
     | 'PENDENTE'
+    | 'CONFIRMADA'
     | 'EM_ESTADIA'
     | 'CONCLUIDA'
-    | 'CANCELADA';
+    | 'CANCELADA'
+    | 'SEM_COMPARÊNCIA';
 
 export interface Reserva {
   id: number;

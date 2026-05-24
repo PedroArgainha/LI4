@@ -9,9 +9,11 @@ import com.patudos.exception.RegraDeNegocioException;
 import com.patudos.entity.Reserva;
 import com.patudos.entity.ReservaServico;
 import com.patudos.entity.Servico;
+import com.patudos.entity.ServicoIndisponibilidade;
 import com.patudos.enums.EstadoReserva;
 import com.patudos.repository.ReservaRepository;
 import com.patudos.repository.ReservaServicoRepository;
+import com.patudos.repository.ServicoIndisponibilidadeRepository;
 import com.patudos.repository.ServicoRepository;
 import com.patudos.service.interfaces.IGestaoServicos;
 import org.springframework.stereotype.Service;
@@ -19,6 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class GestaoServicosService implements IGestaoServicos {
@@ -26,13 +30,16 @@ public class GestaoServicosService implements IGestaoServicos {
     private final ServicoRepository servicoRepository;
     private final ReservaRepository reservaRepository;
     private final ReservaServicoRepository reservaServicoRepository;
+    private final ServicoIndisponibilidadeRepository indisponibilidadeRepository;
 
     public GestaoServicosService(ServicoRepository servicoRepository,
                                  ReservaRepository reservaRepository,
-                                 ReservaServicoRepository reservaServicoRepository) {
+                                 ReservaServicoRepository reservaServicoRepository,
+                                 ServicoIndisponibilidadeRepository indisponibilidadeRepository) {
         this.servicoRepository = servicoRepository;
         this.reservaRepository = reservaRepository;
         this.reservaServicoRepository = reservaServicoRepository;
+        this.indisponibilidadeRepository = indisponibilidadeRepository;
     }
 
     @Override
@@ -67,6 +74,35 @@ public class GestaoServicosService implements IGestaoServicos {
     }
 
     @Override
+    @Transactional
+    public void bloquearData(Long servicoId, LocalDate data) {
+        validarDataIndisponibilidade(data);
+        Servico servico = encontrarServico(servicoId);
+
+        if (!indisponibilidadeRepository.existsByServicoIdAndData(servicoId, data)) {
+            indisponibilidadeRepository.save(new ServicoIndisponibilidade(servico, data));
+        }
+    }
+
+    @Override
+    @Transactional
+    public void desbloquearData(Long servicoId, LocalDate data) {
+        encontrarServico(servicoId);
+        indisponibilidadeRepository.deleteByServicoIdAndData(servicoId, data);
+    }
+
+    @Override
+    @Transactional
+    public void removerServico(Long servicoId) {
+        Servico servico = encontrarServico(servicoId);
+
+        // Remove primeiro os agendamentos e indisponibilidades para evitar chaves estrangeiras penduradas.
+        reservaServicoRepository.deleteByServicoId(servicoId);
+        indisponibilidadeRepository.deleteByServicoId(servicoId);
+        servicoRepository.delete(servico);
+    }
+
+    @Override
     public ServicoResponse obterPorId(Long servicoId) {
         return toResponse(encontrarServico(servicoId));
     }
@@ -78,7 +114,28 @@ public class GestaoServicosService implements IGestaoServicos {
 
     @Override
     public List<ServicoResponse> listarDisponiveis() {
-        return servicoRepository.findByDisponivelTrue().stream().map(this::toResponse).toList();
+        return listarDisponiveis(null);
+    }
+
+    @Override
+    public List<ServicoResponse> listarDisponiveis(LocalDate data) {
+        List<Servico> servicos = servicoRepository.findByDisponivelTrue();
+
+        if (data == null) {
+            return servicos.stream().map(this::toResponse).toList();
+        }
+
+        Set<Long> indisponiveisNaData = indisponibilidadeRepository
+                .findByServicoIdIn(servicos.stream().map(Servico::getId).toList())
+                .stream()
+                .filter(i -> i.getData().equals(data))
+                .map(i -> i.getServico().getId())
+                .collect(Collectors.toSet());
+
+        return servicos.stream()
+                .filter(s -> !indisponiveisNaData.contains(s.getId()))
+                .map(this::toResponse)
+                .toList();
     }
 
     @Override
@@ -101,6 +158,12 @@ public class GestaoServicosService implements IGestaoServicos {
         if (!servico.isDisponivel()) {
             throw new RegraDeNegocioException(
                     "O serviço '" + servico.getNome() + "' não está disponível.");
+        }
+
+        if (indisponibilidadeRepository.existsByServicoIdAndData(servico.getId(), request.dataExecucao())) {
+            throw new RegraDeNegocioException(
+                    "O serviço '" + servico.getNome() + "' está indisponível no dia " +
+                            request.dataExecucao() + ".");
         }
 
         // Verificar capacidade diária — contar quantas vezes este serviço já
@@ -193,6 +256,14 @@ public class GestaoServicosService implements IGestaoServicos {
         return toServicoAgendadoResponse(reservaServicoRepository.save(rs));
     }
 
+    private void validarDataIndisponibilidade(LocalDate data) {
+        if (data == null) {
+            throw new RegraDeNegocioException("A data de indisponibilidade é obrigatória.");
+        }
+        if (data.isBefore(LocalDate.now())) {
+            throw new RegraDeNegocioException("Não é possível configurar indisponibilidade para datas passadas.");
+        }
+    }
 
     private ServicoAgendadoResponse toServicoAgendadoResponse(ReservaServico rs) {
         Reserva reserva = rs.getReserva();
@@ -221,13 +292,20 @@ public class GestaoServicosService implements IGestaoServicos {
     }
 
     private ServicoResponse toResponse(Servico s) {
+        List<LocalDate> datasIndisponiveis = indisponibilidadeRepository
+                .findByServicoIdOrderByDataAsc(s.getId())
+                .stream()
+                .map(ServicoIndisponibilidade::getData)
+                .toList();
+
         return new ServicoResponse(
                 s.getId(),
                 s.getNome(),
                 s.getDescricao(),
                 s.getPreco(),
                 s.getCapacidadeDiaria(),
-                s.isDisponivel()
+                s.isDisponivel(),
+                datasIndisponiveis
         );
     }
 }

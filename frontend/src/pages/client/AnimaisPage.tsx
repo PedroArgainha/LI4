@@ -22,7 +22,7 @@ export default function AnimaisPage() {
   const [editing, setEditing] = useState<Animal | null>(null);
   const [form, setForm] = useState<AnimalRequest>(EMPTY);
 
-  const { data: animais = [], isLoading } = useQuery({
+  const { data: animais = [], isLoading } = useQuery<Animal[]>({
     queryKey: ['animais', 'proprietario', utilizador!.id],
     queryFn: () => animalApi.listarPorProprietario(utilizador!.id),
   });
@@ -31,13 +31,25 @@ export default function AnimaisPage() {
 
   const criarMutation = useMutation({
     mutationFn: (data: AnimalRequest) => animalApi.criar(utilizador!.id, data),
-    onSuccess: () => { toast.success('Animal registado!'); invalidate(); closeModal(); },
+    onSuccess: (animalCriado: Animal) => {
+      toast.success('Animal registado!');
+      qc.setQueryData<Animal[]>(['animais', 'proprietario', utilizador!.id], (old: Animal[] = []) => [animalCriado, ...old]);
+      invalidate();
+      closeModal();
+    },
     onError: () => toast.error('Erro ao registar animal.'),
   });
 
   const editarMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: Partial<AnimalRequest> }) => animalApi.atualizar(id, data),
-    onSuccess: () => { toast.success('Animal atualizado!'); invalidate(); closeModal(); },
+    onSuccess: (animalAtualizado: Animal) => {
+      toast.success('Animal atualizado!');
+      qc.setQueryData<Animal[]>(['animais', 'proprietario', utilizador!.id], (old: Animal[] = []) =>
+        old.map((a) => (a.id === animalAtualizado.id ? animalAtualizado : a))
+      );
+      invalidate();
+      closeModal();
+    },
     onError: () => toast.error('Erro ao atualizar animal.'),
   });
 
@@ -93,7 +105,7 @@ export default function AnimaisPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {animais.map((a) => (
+          {animais.map((a: Animal) => (
             <AnimalCard key={a.id} animal={a} onEdit={() => openEdit(a)} />
           ))}
         </div>

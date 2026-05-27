@@ -161,23 +161,27 @@ public class GestaoReservasService implements IGestaoReservas {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ReservaResponse obterPorId(Long reservaId) {
         return toResponse(encontrarReserva(reservaId));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ReservaResponse> listarPorProprietario(Long proprietarioId) {
         return reservaRepository.findByProprietarioId(proprietarioId)
                 .stream().map(this::toResponse).toList();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ReservaResponse> listarTodas() {
         return reservaRepository.findAll()
                 .stream().map(this::toResponse).toList();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ReservaResponse> listarEstadiasAtivas(LocalDate data) {
         return reservaRepository.findEstadiasAtivas(data)
                 .stream().map(this::toResponse).toList();
